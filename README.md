@@ -25,11 +25,10 @@ Asia/Bangkok (UTC+7)  Fri, May 2, 9:30 AM
 - Natural city name input (`"timein London"`, `"timein São Paulo"`)
 - Lookup by airport codes (e.g., `"timein JFK"` for John F. Kennedy International Airport)
 - Lookup by postal codes (e.g., `"timein 90210"` for Beverly Hills, California)
-- Lookup by landmarks (e.g., `"timein Eiffel Tower"`)
+- Lookup by landmarks (e.g., `"timein Eiffel Tower"`, `"timein Statue of Liberty"`)
 - Instant results via `alfy` Script Filter
 - Built-in debouncing via Alfred for efficient input handling
 - Location resolution via OpenStreetMap (no API keys required)
-- Advanced lookup capabilities (e.g., `"timein near Statue of Liberty"`)
 - Accurate timezone mapping with IANA strings (`America/Toronto`)
 - Minimal in-memory caching for repeat queries
 - Fully tested with Vitest
@@ -87,10 +86,11 @@ Tests cover core logic: geocoding, timezone resolution, formatting, and edge cas
 
 Want to contribute? Here are some next steps:
 
-- Add timezone UTC offset display (`UTC+1`, etc.)
-- Static alias map for nicknames like `"sf"`, `"nyc"`, `"la"`
-- Offline fallback using city to timezone flatfile (optional)
-- Support for `timein now` to show local system time
+- Implement internationalization & localization
+- Support `timein here` for local resolution
+- Support `timein tz-code` (e.g., UTC, GMT, EST)
+- Bundle a cache of major locations in the distribution for offline access
+- Encourage people to suggest ideas
 
 ## License
 
