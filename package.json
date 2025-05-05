@@ -5,7 +5,7 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "test": "vitest",
+    "test": "NODE_NO_WARNINGS=1 vitest",
     "timein": "node --no-warnings index.js"
   },
   "keywords": [
@@ -16,7 +16,7 @@
     "city",
     "alfy"
   ],
-  "author": "",
+  "author": "Xavier Spriet",
   "license": "MIT",
   "dependencies": {
     "alfy": "^2.1.0",
@@ -25,6 +25,6 @@
     "tz-lookup": "^6.1.25"
   },
   "devDependencies": {
-    "vitest": "^1.0.0"
+    "vitest": "^3.1.3"
   }
 }
