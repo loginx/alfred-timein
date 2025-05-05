@@ -19,7 +19,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "alfy": "^1.0.0",
+    "alfy": "^2.1.0",
     "lru-cache": "^11.1.0",
     "node-geocoder": "^4.2.0",
     "tz-lookup": "^6.1.25"
