@@ -5,7 +5,9 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "test": "NODE_NO_WARNINGS=1 vitest",
+    "build": "rm -rf node_modules && npm install --production && npm dedupe && npx modclean --run",
+    "dev": "rm -rf node_modules && npm install",
+    "test": "[ -d node_modules/vitest ] || npm run dev; NODE_NO_WARNINGS=1 vitest",
     "timein": "node --no-warnings index.js"
   },
   "keywords": [
