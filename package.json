@@ -8,11 +8,19 @@
     "test": "vitest",
     "timein": "node --no-warnings index.js"
   },
-  "keywords": ["alfred", "workflow", "time", "timezone", "city", "alfy"],
+  "keywords": [
+    "alfred",
+    "workflow",
+    "time",
+    "timezone",
+    "city",
+    "alfy"
+  ],
   "author": "",
   "license": "MIT",
   "dependencies": {
     "alfy": "^1.0.0",
+    "lru-cache": "^11.1.0",
     "node-geocoder": "^4.2.0",
     "tz-lookup": "^6.1.25"
   },

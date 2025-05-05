@@ -37,11 +37,11 @@ async function main() {
   }
 
   // Check cache first
-  let coords = getCache(input.toLowerCase());
-  if (!coords) {
+  let timezone = await getCache(input.toLowerCase());
+  if (!timezone) {
+    let coords;
     try {
       coords = await getCoordinates(input);
-      setCache(input.toLowerCase(), coords);
     } catch (err) {
       alfy.output([
         {
@@ -53,21 +53,20 @@ async function main() {
       ]);
       return;
     }
-  }
-
-  let timezone;
-  try {
-    timezone = getTimezone(coords.lat, coords.lon);
-  } catch (err) {
-    alfy.output([
-      {
-        title: 'Timezone not found',
-        subtitle: err.message,
-        valid: false,
-        icon: { path: alfy.icon.warning },
-      },
-    ]);
-    return;
+    try {
+      timezone = getTimezone(coords.lat, coords.lon);
+      await setCache(input.toLowerCase(), timezone);
+    } catch (err) {
+      alfy.output([
+        {
+          title: 'Timezone not found',
+          subtitle: err.message,
+          valid: false,
+          icon: { path: alfy.icon.warning },
+        },
+      ]);
+      return;
+    }
   }
 
   let timeString;

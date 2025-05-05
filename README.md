@@ -30,7 +30,7 @@ Asia/Bangkok (UTC+7)  Fri, May 2, 9:30 AM
 - Built-in debouncing via Alfred for efficient input handling
 - Location resolution via OpenStreetMap (no API keys required)
 - Accurate timezone mapping with IANA strings (`America/Toronto`)
-- Minimal in-memory caching for repeat queries
+- **Persistent disk caching for repeat queries (city → timezone) in `./.cache/`**
 - Fully tested with Vitest
 - ESM-only codebase (Node.js 18+)
 
@@ -63,9 +63,16 @@ Asia/Bangkok (UTC+7)  Fri, May 2, 9:30 AM
 | `alfy`       | Alfred integration and Script Filter handling |
 | `node-geocoder` | City name to coordinates (OpenStreetMap) |
 | `tz-lookup` | Coordinates to IANA timezone string |
-| `quick-lru` | Lightweight in-memory caching |
+| `lru-cache` | Persistent LRU disk caching (city → timezone) |
 | `vitest`    | Unit testing framework |
 | `Intl.DateTimeFormat` | Native date/time formatting |
+
+## Caching Details
+
+- The persistent cache is stored in the `./.cache/` directory (ignored by git).
+- The cache maps city names (lowercased) to their resolved IANA timezone.
+- On first lookup, the workflow queries OpenStreetMap and resolves the timezone; subsequent lookups are instant and do not require network access.
+- You can safely delete the `.cache/` directory to clear the cache.
 
 ## Testing
 
@@ -75,7 +82,7 @@ Run tests with:
 npm run test
 ```
 
-Tests cover core logic: geocoding, timezone resolution, formatting, and edge cases.
+Tests cover core logic: geocoding, timezone resolution, formatting, caching, and edge cases.
 
 ## Known Limitations
 

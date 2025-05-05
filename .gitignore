@@ -1,1 +1,3 @@
 node_modules
+# Ignore persistent cache directory
+.cache/
