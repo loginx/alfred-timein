@@ -1,5 +1,9 @@
 # Alfred Workflow: `timein <city>`
 
+<p align="center">
+  <img src="docs/timein-screenshot.png" alt="Alfred Timein Workflow Screenshot" width="600" />
+</p>
+
 A fast, zero-config Alfred workflow that tells you the current local time in any city using natural language input.
 
 Type:
