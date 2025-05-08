@@ -4,6 +4,8 @@
 <dict>
 	<key>bundleid</key>
 	<string>com.loginx.timein</string>
+	<key>category</key>
+	<string>Internet</string>
 	<key>connections</key>
 	<dict>
 		<key>81D943E0-84C0-44D9-B340-3A629B6ABBC8</key>
@@ -30,6 +32,25 @@
 	<string>TimeIn</string>
 	<key>objects</key>
 	<array>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>autopaste</key>
+				<false/>
+				<key>clipboardtext</key>
+				<string>{query}</string>
+				<key>ignoredynamicplaceholders</key>
+				<false/>
+				<key>transient</key>
+				<false/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.output.clipboard</string>
+			<key>uid</key>
+			<string>E7324394-5ABB-40F3-8A7F-BA59B886333F</string>
+			<key>version</key>
+			<integer>3</integer>
+		</dict>
 		<dict>
 			<key>config</key>
 			<dict>
@@ -79,25 +100,6 @@
 			<key>version</key>
 			<integer>3</integer>
 		</dict>
-		<dict>
-			<key>config</key>
-			<dict>
-				<key>autopaste</key>
-				<false/>
-				<key>clipboardtext</key>
-				<string>{query}</string>
-				<key>ignoredynamicplaceholders</key>
-				<false/>
-				<key>transient</key>
-				<false/>
-			</dict>
-			<key>type</key>
-			<string>alfred.workflow.output.clipboard</string>
-			<key>uid</key>
-			<string>E7324394-5ABB-40F3-8A7F-BA59B886333F</string>
-			<key>version</key>
-			<integer>3</integer>
-		</dict>
 	</array>
 	<key>uidata</key>
 	<dict>
@@ -119,6 +121,6 @@
 	<key>userconfigurationconfig</key>
 	<array/>
 	<key>webaddress</key>
-	<string></string>
+	<string>https://github.com/loginx/alfred-timein</string>
 </dict>
 </plist>
