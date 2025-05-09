@@ -10,6 +10,18 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Ensure on correct branch
+        run: |
+          # Get the branch that the tag is on
+          BRANCH=$(git branch -r --contains $GITHUB_SHA | grep -v '\->' | grep -v 'HEAD' | head -n1 | sed 's|origin/||' | tr -d '[:space:]')
+          if [ -z "$BRANCH" ]; then
+            echo "Could not determine branch for tag. Exiting."
+            exit 1
+          fi
+          git checkout $BRANCH
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
