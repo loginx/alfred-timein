@@ -1,10 +1,12 @@
 # Alfred Workflow: `timein <city>`
 
+## Usage
+
+Search for the current local time in any city via the `timein` keyword.
+
 <p align="center">
   <img src="docs/timein-screenshot.png" alt="Alfred Timein Workflow Screenshot" width="600" />
 </p>
-
-A fast, zero-config Alfred workflow that tells you the current local time in any city using natural language input.
 
 Type:
 
@@ -23,6 +25,10 @@ And get:
 ```text
 Asia/Bangkok (UTC+7)  Fri, May 2, 9:30 AM
 ```
+
+## Description
+
+A fast, zero-config Alfred workflow that tells you the current local time in any city using natural language input.
 
 ## Features
 
