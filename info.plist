@@ -25,7 +25,7 @@
 	<key>createdby</key>
 	<string>Xavier Spriet</string>
 	<key>description</key>
-	<string>Get the current local time in any city using natural language input.</string>
+	<string>Search for the current local time in any city via the `timein` keyword.</string>
 	<key>disabled</key>
 	<false/>
 	<key>name</key>
