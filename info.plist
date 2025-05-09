@@ -143,7 +143,7 @@ A fast, zero-config Alfred workflow that tells you the current local time in any
 	<key>variablesdontexport</key>
 	<array/>
 	<key>version</key>
-	<string>1.0.4</string>
+	<string>1.0.5</string>
 	<key>webaddress</key>
 	<string>https://github.com/loginx/alfred-timein</string>
 </dict>
