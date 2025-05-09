@@ -30,6 +30,12 @@ Asia/Bangkok (UTC+7)  Fri, May 2, 9:30 AM
 
 A fast, zero-config Alfred workflow that tells you the current local time in any city using natural language input.
 
+## Requirements
+- [Node.js](https://nodejs.org/) v18 or higher must be installed on your Mac. You can install it with [Homebrew](https://brew.sh/):
+  ```bash
+  brew install node
+  ```
+
 ## Features
 
 - Natural city name input (`"timein London"`, `"timein São Paulo"`)
