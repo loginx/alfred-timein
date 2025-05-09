@@ -5,7 +5,7 @@
 Search for the current local time in any city via the `timein` keyword.
 
 <p align="center">
-  <img src="docs/timein-screenshot.png" alt="Alfred Timein Workflow Screenshot" width="600" />
+  <img src="about/screenshot.png" alt="Alfred Timein Workflow Screenshot" width="600" />
 </p>
 
 Type:

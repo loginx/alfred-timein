@@ -102,7 +102,25 @@
 		</dict>
 	</array>
 	<key>readme</key>
-	<string>A fast, zero-config Alfred workflow that tells you the current local time in any city using natural language input.</string>
+	<string>## Usage
+
+Search for the current local time in any city via the `timein` keyword.
+
+![Showing timein workflow in action](about/screenshot.png)
+
+Type:
+
+    timein bangkok
+    timein new york
+    timein tokyo
+
+And get:
+
+    Asia/Bangkok (UTC+7)  Fri, May 2, 9:30 AM
+
+## Description
+
+A fast, zero-config Alfred workflow that tells you the current local time in any city using natural language input.</string>
 	<key>uidata</key>
 	<dict>
 		<key>81D943E0-84C0-44D9-B340-3A629B6ABBC8</key>
