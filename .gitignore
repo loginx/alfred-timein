@@ -1,3 +1,4 @@
 # Ignore persistent cache directory
 .cache/
 node_modules/.vite/
+node_modules/
