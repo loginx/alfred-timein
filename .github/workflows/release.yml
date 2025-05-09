@@ -1,0 +1,45 @@
+name: Alfred Workflow Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  release:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install production dependencies
+        run: |
+          npm ci --omit=dev
+          npm dedupe
+
+      - name: Clean up node_modules (optional)
+        run: |
+          npx modclean --run || true
+
+      - name: Extract version from tag
+        id: get_version
+        run: echo "version=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
+
+      - name: Update workflow version in info.plist
+        run: |
+          plutil -replace version -string "${{ steps.get_version.outputs.version }}" info.plist
+
+      - name: Create Alfred workflow archive
+        run: |
+          zip -r TimeIn.alfredworkflow . -x '*.git*' -x '*.github*' -x '*.DS_Store'
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: TimeIn.alfredworkflow
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
