@@ -40,6 +40,20 @@ Asia/Bangkok (UTC+7)  Fri, May 2, 9:30 AM
 
 ## Installation
 
+**Recommended:**
+
+1. Download the latest release from [the Releases page](https://github.com/loginx/alfred-timein/releases/latest).
+2. Double-click the `.alfredworkflow` file to install it in Alfred.
+3. In Alfred, type:
+
+    ```bash
+    timein berlin
+    ```
+
+**Advanced/Development:**
+
+If you want to build and run the workflow yourself:
+
 1. Clone this repo into your Alfred workflows folder or develop with `alfred-link`:
 
     ```bash
