@@ -1,6 +1,6 @@
 {
   "name": "alfred-timein",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Alfred workflow to get current time in any city using alfy, node-geocoder, and tz-lookup.",
   "type": "module",
   "main": "index.js",
