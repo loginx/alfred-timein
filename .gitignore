@@ -19,7 +19,6 @@
 coverage/
 
 # Go modules
-go.sum
 
 # IDE/editor
 .idea/
