@@ -18,7 +18,7 @@ jobs:
         run: echo "version=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
       - name: Update workflow version in info.plist (artifact only)
         run: |
-          plutil -replace version -string "${{ steps.get_version.outputs.version }}" info.plist
+          plutil -replace version -string "${{ steps.get_version.outputs.version }}" workflow/info.plist
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
