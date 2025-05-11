@@ -9,12 +9,12 @@ test:
 
 build:
 	mkdir -p $(BIN_DIR)
-	GOOS=darwin GOARCH=amd64 go build -o $(BIN_DIR)/geotz_amd64 ./cmd/geotz
-	GOOS=darwin GOARCH=arm64 go build -o $(BIN_DIR)/geotz_arm64 ./cmd/geotz
+	GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -trimpath -o $(BIN_DIR)/geotz_amd64 ./cmd/geotz
+	GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -trimpath -o $(BIN_DIR)/geotz_arm64 ./cmd/geotz
 	lipo -create -output $(BIN_DIR)/geotz $(BIN_DIR)/geotz_amd64 $(BIN_DIR)/geotz_arm64
 	rm $(BIN_DIR)/geotz_amd64 $(BIN_DIR)/geotz_arm64
-	GOOS=darwin GOARCH=amd64 go build -o $(BIN_DIR)/timein_amd64 ./cmd/timein
-	GOOS=darwin GOARCH=arm64 go build -o $(BIN_DIR)/timein_arm64 ./cmd/timein
+	GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -trimpath -o $(BIN_DIR)/timein_amd64 ./cmd/timein
+	GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -trimpath -o $(BIN_DIR)/timein_arm64 ./cmd/timein
 	lipo -create -output $(BIN_DIR)/timein $(BIN_DIR)/timein_amd64 $(BIN_DIR)/timein_arm64
 	rm $(BIN_DIR)/timein_amd64 $(BIN_DIR)/timein_arm64
 
