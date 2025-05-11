@@ -8,7 +8,7 @@
 	<string>Internet</string>
 	<key>connections</key>
 	<dict>
-		<key>AA069B68-4776-4A5D-9FD9-4B3EA0F8BD25</key>
+		<key>81D943E0-84C0-44D9-B340-3A629B6ABBC8</key>
 		<array>
 			<dict>
 				<key>destinationuid</key>
@@ -75,11 +75,11 @@
 				<key>queuedelaymode</key>
 				<integer>1</integer>
 				<key>queuemode</key>
-				<integer>2</integer>
+				<integer>1</integer>
 				<key>runningsubtext</key>
 				<string>Searching</string>
 				<key>script</key>
-				<string>./bin/geotz "${1}" | ./bin/timein --format=alfred</string>
+				<string>../bin/timein "$1"</string>
 				<key>scriptargtype</key>
 				<integer>1</integer>
 				<key>scriptfile</key>
@@ -87,7 +87,7 @@
 				<key>subtext</key>
 				<string>Bangkok</string>
 				<key>title</key>
-				<string>city or landmark</string>
+				<string>city</string>
 				<key>type</key>
 				<integer>0</integer>
 				<key>withspace</key>
@@ -96,7 +96,7 @@
 			<key>type</key>
 			<string>alfred.workflow.input.scriptfilter</string>
 			<key>uid</key>
-			<string>AA069B68-4776-4A5D-9FD9-4B3EA0F8BD25</string>
+			<string>81D943E0-84C0-44D9-B340-3A629B6ABBC8</string>
 			<key>version</key>
 			<integer>3</integer>
 		</dict>
@@ -123,19 +123,19 @@ And get:
 A fast, zero-config Alfred workflow that tells you the current local time in any city using natural language input.</string>
 	<key>uidata</key>
 	<dict>
-		<key>AA069B68-4776-4A5D-9FD9-4B3EA0F8BD25</key>
+		<key>81D943E0-84C0-44D9-B340-3A629B6ABBC8</key>
 		<dict>
 			<key>xpos</key>
-			<real>190</real>
+			<real>505</real>
 			<key>ypos</key>
-			<real>350</real>
+			<real>380</real>
 		</dict>
 		<key>E7324394-5ABB-40F3-8A7F-BA59B886333F</key>
 		<dict>
 			<key>xpos</key>
-			<real>680</real>
+			<real>790</real>
 			<key>ypos</key>
-			<real>350</real>
+			<real>380</real>
 		</dict>
 	</dict>
 	<key>userconfigurationconfig</key>

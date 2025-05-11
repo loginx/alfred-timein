@@ -1,4 +1,27 @@
-# Ignore persistent cache directory
+# Go build artifacts
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Editor/OS
+.DS_Store
 .cache/
-node_modules/.vite/
-node_modules/
+
+# Ignore workflow and release artifacts
+*.alfredworkflow
+*.zip
+
+# Ignore test output
+coverage/
+
+# Go modules
+
+# IDE/editor
+.idea/
+.vscode/
+
+bin/
