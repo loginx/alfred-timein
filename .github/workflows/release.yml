@@ -1,50 +1,14 @@
-name: Alfred TimeIn Go CI/CD
+name: Alfred TimeIn Go Release
 
 on:
   push:
-    branches:
-      - main
-      - rewrite/go
     tags:
       - 'v*.*.*'
-  pull_request:
-    branches:
-      - main
-      - rewrite/go
 
 jobs:
-  ci:
-    name: Go CI
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.21'
-      - name: Run Go tests
-        run: go test ./...
-      - name: Build Go binaries (amd64)
-        run: |
-          GOOS=darwin GOARCH=amd64 go build -o geotz_amd64 ./cmd/geotz
-          GOOS=darwin GOARCH=amd64 go build -o timein_amd64 ./cmd/timein
-      - name: Build Go binaries (arm64)
-        run: |
-          GOOS=darwin GOARCH=arm64 go build -o geotz_arm64 ./cmd/geotz
-          GOOS=darwin GOARCH=arm64 go build -o timein_arm64 ./cmd/timein
-      - name: Create universal binaries with lipo
-        run: |
-          lipo -create -output geotz geotz_amd64 geotz_arm64
-          lipo -create -output timein timein_amd64 timein_arm64
-          rm geotz_amd64 geotz_arm64 timein_amd64 timein_arm64
-
   release:
     name: Release
     runs-on: macos-latest
-    needs: ci
-    if: startsWith(github.ref, 'refs/tags/v')
     steps:
       - uses: actions/checkout@v4
         with:
@@ -52,16 +16,9 @@ jobs:
       - name: Extract version from tag
         id: get_version
         run: echo "version=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
-      - name: Update workflow version in info.plist
+      - name: Update workflow version in info.plist (artifact only)
         run: |
           plutil -replace version -string "${{ steps.get_version.outputs.version }}" info.plist
-      - name: Commit version update
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add info.plist
-          git commit -m "chore: update version to ${{ steps.get_version.outputs.version }} [skip ci]" || echo "No changes to commit"
-          git push
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
@@ -70,12 +27,12 @@ jobs:
         run: go test ./...
       - name: Build Go binaries (amd64)
         run: |
-          GOOS=darwin GOARCH=amd64 go build -o geotz_amd64 ./cmd/geotz
-          GOOS=darwin GOARCH=amd64 go build -o timein_amd64 ./cmd/timein
+          GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -trimpath -o geotz_amd64 ./cmd/geotz
+          GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -trimpath -o timein_amd64 ./cmd/timein
       - name: Build Go binaries (arm64)
         run: |
-          GOOS=darwin GOARCH=arm64 go build -o geotz_arm64 ./cmd/geotz
-          GOOS=darwin GOARCH=arm64 go build -o timein_arm64 ./cmd/timein
+          GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -trimpath -o geotz_arm64 ./cmd/geotz
+          GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -trimpath -o timein_arm64 ./cmd/timein
       - name: Create universal binaries with lipo
         run: |
           lipo -create -output geotz geotz_amd64 geotz_arm64
