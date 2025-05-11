@@ -8,7 +8,7 @@
 	<string>Internet</string>
 	<key>connections</key>
 	<dict>
-		<key>81D943E0-84C0-44D9-B340-3A629B6ABBC8</key>
+		<key>AA069B68-4776-4A5D-9FD9-4B3EA0F8BD25</key>
 		<array>
 			<dict>
 				<key>destinationuid</key>
@@ -27,7 +27,7 @@
 	<key>description</key>
 	<string>Search for the current local time in any city via the `timein` keyword.</string>
 	<key>disabled</key>
-	<false/>
+	<true/>
 	<key>name</key>
 	<string>TimeIn</string>
 	<key>objects</key>
@@ -75,17 +75,11 @@
 				<key>queuedelaymode</key>
 				<integer>1</integer>
 				<key>queuemode</key>
-				<integer>1</integer>
+				<integer>2</integer>
 				<key>runningsubtext</key>
 				<string>Searching</string>
 				<key>script</key>
-				<string>for exe in geotz timein; do
-  bin="./bin/$exe"
-  if xattr "$bin" 2&gt;/dev/null | grep -q com.apple.quarantine; then
-    xattr -dr com.apple.quarantine "$bin" 2&gt;/dev/null
-  fi
-done
-./bin/geotz "${1}" | ./bin/timein --format=alfred</string>
+				<string>./bin/geotz "${1}" | ./bin/timein --format=alfred</string>
 				<key>scriptargtype</key>
 				<integer>1</integer>
 				<key>scriptfile</key>
@@ -93,7 +87,7 @@ done
 				<key>subtext</key>
 				<string>Bangkok</string>
 				<key>title</key>
-				<string>city</string>
+				<string>city or landmark</string>
 				<key>type</key>
 				<integer>0</integer>
 				<key>withspace</key>
@@ -102,7 +96,7 @@ done
 			<key>type</key>
 			<string>alfred.workflow.input.scriptfilter</string>
 			<key>uid</key>
-			<string>81D943E0-84C0-44D9-B340-3A629B6ABBC8</string>
+			<string>AA069B68-4776-4A5D-9FD9-4B3EA0F8BD25</string>
 			<key>version</key>
 			<integer>3</integer>
 		</dict>
@@ -129,19 +123,19 @@ And get:
 A fast, zero-config Alfred workflow that tells you the current local time in any city using natural language input.</string>
 	<key>uidata</key>
 	<dict>
-		<key>81D943E0-84C0-44D9-B340-3A629B6ABBC8</key>
+		<key>AA069B68-4776-4A5D-9FD9-4B3EA0F8BD25</key>
 		<dict>
 			<key>xpos</key>
-			<real>505</real>
+			<real>190</real>
 			<key>ypos</key>
-			<real>380</real>
+			<real>350</real>
 		</dict>
 		<key>E7324394-5ABB-40F3-8A7F-BA59B886333F</key>
 		<dict>
 			<key>xpos</key>
-			<real>790</real>
+			<real>680</real>
 			<key>ypos</key>
-			<real>380</real>
+			<real>350</real>
 		</dict>
 	</dict>
 	<key>userconfigurationconfig</key>
