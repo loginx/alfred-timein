@@ -1,17 +1,11 @@
 # Alfred Workflow: `timein <city>`
 
-## Why Go? Why this workflow?
-
-- **Blazing fast**: Native Go binaries, no Node.js or npm bloat.
-- **Tiny footprint**: No dependencies, no runtime, no "node_modules" hell.
-- **Use it anywhere**: Works in Alfred and as standalone CLI tools.
-
 ## Usage
 
 Search for the current local time in any city via the `timein` keyword in Alfred, or use the CLI tools directly.
 
 <p align="center">
-  <img src="about/screenshot.png" alt="Alfred Timein Workflow Screenshot" width="600" />
+  <img src="workflow/screenshot.png" alt="Alfred Timein Workflow Screenshot" width="600" />
 </p>
 
 Type in Alfred:
