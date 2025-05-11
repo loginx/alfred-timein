@@ -1,40 +1,58 @@
 # Alfred Workflow: `timein <city>`
 
+## Why Go? Why this workflow?
+
+- **Blazing fast**: Native Go binaries, no Node.js or npm bloat.
+- **Tiny footprint**: No dependencies, no runtime, no "node_modules" hell.
+- **Use it anywhere**: Works in Alfred and as standalone CLI tools.
+
 ## Usage
 
-Search for the current local time in any city via the `timein` keyword.
+Search for the current local time in any city via the `timein` keyword in Alfred, or use the CLI tools directly.
 
 <p align="center">
   <img src="about/screenshot.png" alt="Alfred Timein Workflow Screenshot" width="600" />
 </p>
 
-Type:
+Type in Alfred:
 
 ```bash
 # In Alfred:
 timein bangkok
 timein new york
 timein tokyo
-
-# From the terminal:
-npm run timein bangkok
 ```
 
 And get:
 
 ```text
-Asia/Bangkok (UTC+7)  Fri, May 2, 9:30 AM
+Asia/Bangkok - Mon, May 12, 1:38 AM
+Current time in Bangkok (ICT)
+```
+
+Or use the CLI directly:
+
+```bash
+# Get the current time in a timezone
+bin/timein Asia/Bangkok
+Monday, 12 May 2025, 1:38:07 AM
+
+# Get the current time in Alfred JSON format (for piping)
+bin/timein --format=alfred Asia/Bangkok
+{"items":[{"title":"Asia/Bangkok - Mon, May 12, 1:44 AM","subtitle":"Current time in Bangkok (ICT)","arg":"Asia/Bangkok - Mon, May 12, 1:44 AM","variables":{"timezone":"Asia/Bangkok"}}],"cache":{"seconds":60}}
+
+# Get the timezone for a city or landmark
+bin/geotz "Eiffel Tower"
+Europe/Paris
+
+# Get the timezone for a city in Alfred JSON format
+bin/geotz --format=alfred "Eiffel Tower"
+{"items":[{"title":"Europe/Paris","subtitle":"Eiffel Tower (cached)","arg":"Europe/Paris","variables":{"city":"Eiffel Tower"}}],"cache":{"seconds":604800}}
 ```
 
 ## Description
 
-A fast, zero-config Alfred workflow that tells you the current local time in any city using natural language input.
-
-## Requirements
-- [Node.js](https://nodejs.org/) v18 or higher must be installed on your Mac. You can install it with [Homebrew](https://brew.sh/):
-  ```bash
-  brew install node
-  ```
+A fast, zero-dependency Alfred workflow and CLI toolset that tells you the current local time in any city using natural language input. Powered by Go for maximum speed and reliability.
 
 ## Features
 
@@ -42,13 +60,12 @@ A fast, zero-config Alfred workflow that tells you the current local time in any
 - Lookup by airport codes (e.g., `"timein JFK"` for John F. Kennedy International Airport)
 - Lookup by postal codes (e.g., `"timein 90210"` for Beverly Hills, California)
 - Lookup by landmarks (e.g., `"timein Eiffel Tower"`, `"timein Statue of Liberty"`)
-- Instant results via `alfy` Script Filter
-- Built-in debouncing via Alfred for efficient input handling
+- Instant results via Alfred Script Filter or CLI
 - Location resolution via OpenStreetMap (no API keys required)
 - Accurate timezone mapping with IANA strings (`America/Toronto`)
-- **Persistent disk caching for repeat queries (city → timezone) in `./.cache/`**
-- Fully tested with Vitest
-- ESM-only codebase (Node.js 18+)
+- Persistent disk caching for repeat queries (city → timezone) in `./.cache/`
+- Native, universal Go binaries for maximum performance
+- Fully tested
 
 ## Installation
 
@@ -64,38 +81,26 @@ A fast, zero-config Alfred workflow that tells you the current local time in any
 
 **Advanced/Development:**
 
-If you want to build and run the workflow yourself:
+If you want to build and run the workflow or CLI tools yourself:
 
-1. Clone this repo into your Alfred workflows folder or develop with `alfred-link`:
+1. Clone this repo:
 
     ```bash
-    git clone https://github.com/your-username/alfred-timein.git
+    git clone https://github.com/loginx/alfred-timein.git
     cd alfred-timein
-    npm install
     ```
 
-2. Link it with `alfred-link` (or package manually):
+2. Build the Go binaries:
 
     ```bash
-    npx alfred-link
+    make build
     ```
 
-3. In Alfred, type:
+3. Use the CLI tools directly from `bin/`, or package the workflow:
 
     ```bash
-    timein berlin
+    make alfredworkflow
     ```
-
-## Tech Stack
-
-| Tool         | Purpose                            |
-|--------------|------------------------------------|
-| `alfy`       | Alfred integration and Script Filter handling |
-| `node-geocoder` | City name to coordinates (OpenStreetMap) |
-| `tz-lookup` | Coordinates to IANA timezone string |
-| `lru-cache` | Persistent LRU disk caching (city → timezone) |
-| `vitest`    | Unit testing framework |
-| `Intl.DateTimeFormat` | Native date/time formatting |
 
 ## Caching Details
 
@@ -106,10 +111,10 @@ If you want to build and run the workflow yourself:
 
 ## Testing
 
-Run tests with:
+Run Go tests with:
 
 ```bash
-npm run test
+make test
 ```
 
 Tests cover core logic: geocoding, timezone resolution, formatting, caching, and edge cases.
@@ -117,20 +122,9 @@ Tests cover core logic: geocoding, timezone resolution, formatting, caching, and
 ## Known Limitations
 
 - Requires an internet connection for initial geocoding
-- Results are English-only for now
-
-## Roadmap Ideas
-
-Want to contribute? Here are some next steps:
-
-- Implement internationalization & localization
-- Support `timein here` for local resolution
-- Support `timein tz-code` (e.g., UTC, GMT, EST)
-- Bundle a cache of major locations in the distribution for offline access
-- Encourage people to suggest ideas
 
 ## License
 
 MIT. Feel free to fork and improve.
 
-Made for Alfred users who prefer speed, simplicity, and control.
+Made for Alfred users and CLI fans who prefer speed, simplicity, and control.

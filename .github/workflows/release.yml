@@ -1,69 +1,99 @@
-name: Alfred Workflow Release
+name: Alfred TimeIn Go CI/CD
 
 on:
   push:
+    branches:
+      - main
+      - rewrite/go
     tags:
       - 'v*.*.*'
+  pull_request:
+    branches:
+      - main
+      - rewrite/go
 
 jobs:
-  release:
+  ci:
+    name: Go CI
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: Ensure on correct branch
-        run: |
-          # Get the branch that the tag is on
-          BRANCH=$(git branch -r --contains $GITHUB_SHA | grep -v '\->' | grep -v 'HEAD' | head -n1 | sed 's|origin/||' | tr -d '[:space:]')
-          if [ -z "$BRANCH" ]; then
-            echo "Could not determine branch for tag. Exiting."
-            exit 1
-          fi
-          git checkout $BRANCH
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
         with:
-          node-version: 20
-
-      - name: Install production dependencies
+          go-version: '1.21'
+      - name: Run Go tests
+        run: go test ./...
+      - name: Build Go binaries (amd64)
         run: |
-          npm ci --omit=dev
-          npm dedupe
-
-      - name: Clean up node_modules (optional)
+          GOOS=darwin GOARCH=amd64 go build -o geotz_amd64 ./cmd/geotz
+          GOOS=darwin GOARCH=amd64 go build -o timein_amd64 ./cmd/timein
+      - name: Build Go binaries (arm64)
         run: |
-          npx modclean --run || true
+          GOOS=darwin GOARCH=arm64 go build -o geotz_arm64 ./cmd/geotz
+          GOOS=darwin GOARCH=arm64 go build -o timein_arm64 ./cmd/timein
+      - name: Create universal binaries with lipo
+        run: |
+          lipo -create -output geotz geotz_amd64 geotz_arm64
+          lipo -create -output timein timein_amd64 timein_arm64
+          rm geotz_amd64 geotz_arm64 timein_amd64 timein_arm64
 
+  release:
+    name: Release
+    runs-on: macos-latest
+    needs: ci
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Extract version from tag
         id: get_version
         run: echo "version=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
-
       - name: Update workflow version in info.plist
         run: |
           plutil -replace version -string "${{ steps.get_version.outputs.version }}" info.plist
-
-      - name: Update version in package.json
-        run: |
-          npm version ${{ steps.get_version.outputs.version }} --no-git-tag-version
-
-      - name: Commit version updates
+      - name: Commit version update
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add info.plist package.json
+          git add info.plist
           git commit -m "chore: update version to ${{ steps.get_version.outputs.version }} [skip ci]" || echo "No changes to commit"
           git push
-
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+      - name: Run Go tests
+        run: go test ./...
+      - name: Build Go binaries (amd64)
+        run: |
+          GOOS=darwin GOARCH=amd64 go build -o geotz_amd64 ./cmd/geotz
+          GOOS=darwin GOARCH=amd64 go build -o timein_amd64 ./cmd/timein
+      - name: Build Go binaries (arm64)
+        run: |
+          GOOS=darwin GOARCH=arm64 go build -o geotz_arm64 ./cmd/geotz
+          GOOS=darwin GOARCH=arm64 go build -o timein_arm64 ./cmd/timein
+      - name: Create universal binaries with lipo
+        run: |
+          lipo -create -output geotz geotz_amd64 geotz_arm64
+          lipo -create -output timein timein_amd64 timein_arm64
+          rm geotz_amd64 geotz_arm64 timein_amd64 timein_arm64
+      - name: Bundle Go binaries for release
+        run: |
+          mkdir -p go-binaries
+          mv geotz timein go-binaries/
+          cd go-binaries && zip ../go-binaries.zip *
       - name: Create Alfred workflow archive
         run: |
-          zip -r TimeIn.alfredworkflow . -x '*.git*' -x '*.github*' -x '*.DS_Store'
-
+          zip -r TimeIn.alfredworkflow . -x '*.git*' -x '*.github*' -x '*.DS_Store' -x 'node_modules*' -x 'package*.json' -x '*.md' -x 'test*' -x 'src*' -x 'about*' -x 'docs*' -x 'build*' -x '*.zip'
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: TimeIn.alfredworkflow
+          files: |
+            TimeIn.alfredworkflow
+            go-binaries.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
