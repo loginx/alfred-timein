@@ -16,6 +16,9 @@
 *.alfredworkflow
 *.zip
 
+# Ignore generated cache files (built at release time)
+workflow/geotz_cache.json
+
 # Ignore test output
 coverage/
 # BDD features should be tracked

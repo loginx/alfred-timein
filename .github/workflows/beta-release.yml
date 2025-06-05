@@ -103,7 +103,8 @@ jobs:
           
       - name: Create Alfred workflow archive for beta
         run: |
-          zip -r TimeIn-${{ steps.version.outputs.version }}.alfredworkflow . -x '*.git*' -x '*.github*' -x '*.DS_Store' -x 'node_modules*' -x 'package*.json' -x '*.md' -x 'test*' -x 'src*' -x 'about*' -x 'docs*' -x 'build*' -x '*.zip'
+          make alfredworkflow
+          mv TimeIn.alfredworkflow TimeIn-${{ steps.version.outputs.version }}.alfredworkflow
           
       - name: Create GitHub Pre-release
         uses: softprops/action-gh-release@v2

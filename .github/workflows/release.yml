@@ -94,7 +94,7 @@ jobs:
           chmod +x geotz timein
       - name: Create Alfred workflow archive
         run: |
-          zip -r TimeIn.alfredworkflow . -x '*.git*' -x '*.github*' -x '*.DS_Store' -x 'node_modules*' -x 'package*.json' -x '*.md' -x 'test*' -x 'src*' -x 'about*' -x 'docs*' -x 'build*' -x '*.zip'
+          make alfredworkflow
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
