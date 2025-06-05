@@ -12,8 +12,8 @@ const (
 	defaultCacheDir  = ".cache"
 	defaultCacheFile = "geotz_cache.json"
 	defaultMaxSize   = 100
-	defaultTTL       = 7 * 24 * time.Hour  // 7 days
-	preseedTTL       = 90 * 24 * time.Hour // 90 days for pre-seeded entries
+	defaultTTL       = 30 * 24 * time.Hour  // 30 days - longer for better UX
+	preseedTTL       = 365 * 24 * time.Hour // 1 year for capital coordinates
 )
 
 type cacheEntry struct {
