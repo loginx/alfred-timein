@@ -1,0 +1,91 @@
+name: Beta Release
+
+on:
+  push:
+    branches: [dev]
+
+jobs:
+  beta-release:
+    name: Beta Release
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Generate beta version
+        id: version
+        run: |
+          # Use commit count and short SHA for beta version
+          COUNT=$(git rev-list --count HEAD)
+          SHA=$(git rev-parse --short HEAD)
+          VERSION="beta-${COUNT}-${SHA}"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "Beta version: ${VERSION}"
+          
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+          
+      - name: Run tests
+        run: go test ./...
+        
+      - name: Run BDD tests
+        run: go test -tags=bdd -run TestBDD -timeout 60s
+        
+      - name: Build Go binaries (amd64)
+        run: |
+          GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -trimpath -o geotz_amd64 ./cmd/geotz
+          GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -trimpath -o timein_amd64 ./cmd/timein
+          
+      - name: Build Go binaries (arm64)
+        run: |
+          GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -trimpath -o geotz_arm64 ./cmd/geotz
+          GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -trimpath -o timein_arm64 ./cmd/timein
+          
+      - name: Create universal binaries
+        run: |
+          lipo -create -output geotz geotz_amd64 geotz_arm64
+          lipo -create -output timein timein_amd64 timein_arm64
+          rm geotz_amd64 geotz_arm64 timein_amd64 timein_arm64
+          
+      - name: Update workflow version for beta
+        run: |
+          plutil -replace version -string "${{ steps.version.outputs.version }}" info.plist
+          
+      - name: Bundle Go binaries for beta release
+        run: |
+          mkdir -p bin
+          mv geotz timein bin/
+          cd bin && zip ../bin-${{ steps.version.outputs.version }}.zip *
+          
+      - name: Create Alfred workflow archive for beta
+        run: |
+          zip -r TimeIn-${{ steps.version.outputs.version }}.alfredworkflow . -x '*.git*' -x '*.github*' -x '*.DS_Store' -x 'node_modules*' -x 'package*.json' -x '*.md' -x 'test*' -x 'src*' -x 'about*' -x 'docs*' -x 'build*' -x '*.zip'
+          
+      - name: Create GitHub Pre-release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.version }}
+          name: "Beta ${{ steps.version.outputs.version }}"
+          body: |
+            🚀 **Beta Release - Development Build**
+            
+            This is a beta release from the `dev` branch for testing new features.
+            
+            **⚠️ Use at your own risk - this is not a stable release**
+            
+            **Changes in this build:**
+            - Based on commit ${{ github.sha }}
+            - Automatic beta build from dev branch
+            
+            **Installation:**
+            Download `TimeIn-${{ steps.version.outputs.version }}.alfredworkflow` and open with Alfred.
+          files: |
+            TimeIn-${{ steps.version.outputs.version }}.alfredworkflow
+            bin-${{ steps.version.outputs.version }}.zip
+          prerelease: true
+          draft: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,4 +1,4 @@
-name: Alfred TimeIn Go Release
+name: Stable Release
 
 on:
   push:

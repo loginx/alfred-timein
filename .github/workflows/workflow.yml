@@ -1,0 +1,40 @@
+name: Workflow Build
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+jobs:
+  workflow:
+    name: Build Alfred Workflow
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+          
+      - name: Build workflow using Makefile
+        run: make alfredworkflow
+        
+      - name: Check workflow file
+        run: |
+          echo "Workflow file created:"
+          ls -lh TimeIn.alfredworkflow
+          
+      - name: Verify workflow contents
+        run: |
+          echo "Workflow contents:"
+          unzip -l TimeIn.alfredworkflow
+          
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: alfred-workflow-${{ github.sha }}
+          path: TimeIn.alfredworkflow
+          retention-days: 7
