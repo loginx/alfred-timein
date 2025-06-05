@@ -1,0 +1,217 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [main, dev]
+    tags: ['v*.*.*']
+  pull_request:
+    branches: [main, dev]
+
+jobs:
+  test:
+    name: Test
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+      - name: Run unit tests
+        run: go test ./...
+      - name: Run BDD tests
+        run: go test -tags=bdd -run TestBDD -timeout 60s
+      - name: Run tests with coverage
+        run: go test -coverprofile=coverage.out ./...
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage.out
+          fail_ci_if_error: false
+
+  build:
+    name: Build Binaries
+    runs-on: macos-latest
+    needs: test
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+      
+      - name: Determine version
+        id: version
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/v}
+          elif [[ "${{ github.ref }}" == "refs/heads/dev" ]]; then
+            COUNT=$(git rev-list --count HEAD)
+            SHA=$(git rev-parse --short HEAD)
+            VERSION="v0.0.0-beta.${COUNT}+${SHA}"
+          else
+            VERSION="dev-${GITHUB_SHA:0:8}"
+          fi
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "Version: ${VERSION}"
+      
+      - name: Build binaries (matrix would be better but lipo needs macOS)
+        run: |
+          # amd64
+          GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -trimpath -o geotz_amd64 ./cmd/geotz
+          GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -trimpath -o timein_amd64 ./cmd/timein
+          # arm64  
+          GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -trimpath -o geotz_arm64 ./cmd/geotz
+          GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -trimpath -o timein_arm64 ./cmd/timein
+          # universal
+          lipo -create -output geotz geotz_amd64 geotz_arm64
+          lipo -create -output timein timein_amd64 timein_arm64
+          rm geotz_amd64 geotz_arm64 timein_amd64 timein_arm64
+          chmod +x geotz timein
+      
+      - name: Test binaries
+        run: |
+          ./geotz Tokyo
+          echo "Asia/Tokyo" | ./timein
+      
+      - name: Upload binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: binaries-${{ steps.version.outputs.version }}
+          path: |
+            geotz
+            timein
+          retention-days: 30
+
+  release:
+    name: Create Release
+    runs-on: macos-latest
+    needs: [test, build]
+    if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/dev'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Download binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: binaries-${{ needs.build.outputs.version }}
+      
+      - name: Set up Go (for preseed tool)
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+      
+      - name: Generate changelog (for stable releases)
+        if: startsWith(github.ref, 'refs/tags/v')
+        id: changelog
+        run: |
+          CURRENT_TAG=${GITHUB_REF#refs/tags/}
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 "${CURRENT_TAG}^" 2>/dev/null || echo "")
+          
+          if [ -z "$PREVIOUS_TAG" ]; then
+            COMMITS=$(git log --pretty=format:"- %s" --reverse)
+          else
+            COMMITS=$(git log ${PREVIOUS_TAG}..${CURRENT_TAG} --pretty=format:"- %s" --reverse)
+          fi
+          
+          # Categorize commits
+          FEATURES=$(echo "$COMMITS" | grep "^- feat:" | sed 's/^- feat: /- /' || true)
+          FIXES=$(echo "$COMMITS" | grep "^- fix:" | sed 's/^- fix: /- /' || true)
+          REFACTOR=$(echo "$COMMITS" | grep "^- refactor:" | sed 's/^- refactor: /- /' || true)
+          CHORES=$(echo "$COMMITS" | grep "^- chore:" | sed 's/^- chore: /- /' || true)
+          CI=$(echo "$COMMITS" | grep "^- ci:" | sed 's/^- ci: /- /' || true)
+          DOCS=$(echo "$COMMITS" | grep "^- docs:" | sed 's/^- docs: /- /' || true)
+          
+          CHANGELOG=""
+          if [ -n "$FEATURES" ]; then
+            CHANGELOG="${CHANGELOG}### Features\n${FEATURES}\n\n"
+          fi
+          if [ -n "$FIXES" ]; then
+            CHANGELOG="${CHANGELOG}### Bug Fixes\n${FIXES}\n\n"
+          fi
+          if [ -n "$REFACTOR" ]; then
+            CHANGELOG="${CHANGELOG}### Code Refactoring\n${REFACTOR}\n\n"
+          fi
+          if [ -n "$DOCS" ]; then
+            CHANGELOG="${CHANGELOG}### Documentation\n${DOCS}\n\n"
+          fi
+          if [ -n "$CI" ]; then
+            CHANGELOG="${CHANGELOG}### CI/CD\n${CI}\n\n"
+          fi
+          if [ -n "$CHORES" ]; then
+            CHANGELOG="${CHANGELOG}### Maintenance\n${CHORES}\n\n"
+          fi
+          
+          echo "changelog<<EOF" >> "$GITHUB_OUTPUT"
+          echo -e "$CHANGELOG" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+      
+      - name: Update plist version
+        run: |
+          plutil -replace version -string "${{ needs.build.outputs.version }}" info.plist
+      
+      - name: Create Alfred workflow
+        run: |
+          make alfredworkflow
+          if [[ "${{ github.ref }}" == "refs/heads/dev" ]]; then
+            mv TimeIn.alfredworkflow TimeIn-${{ needs.build.outputs.version }}.alfredworkflow
+          fi
+      
+      - name: Create stable release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "alfred-timein v${{ needs.build.outputs.version }}"
+          body: |
+            A reliable Alfred workflow for timezone lookups and time conversion.
+            
+            ## What's Changed
+            
+            ${{ steps.changelog.outputs.changelog }}
+            
+            ## Installation
+            
+            Download TimeIn.alfredworkflow and open with Alfred.
+            
+            ## CLI Tools
+            
+            Download individual command-line tools:
+            - `geotz` - Timezone lookup by coordinates
+            - `timein` - Time conversion and display
+          files: |
+            TimeIn.alfredworkflow
+            geotz
+            timein
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Create beta release  
+        if: github.ref == 'refs/heads/dev'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.build.outputs.version }}
+          name: "alfred-timein ${{ needs.build.outputs.version }}"
+          body: |
+            Beta release from the dev branch for testing new features.
+            
+            WARNING: This is not a stable release. Use at your own risk.
+            
+            ## Installation
+            
+            Download TimeIn-${{ needs.build.outputs.version }}.alfredworkflow and open with Alfred.
+            
+            Build: ${{ github.sha }}
+          files: |
+            TimeIn-${{ needs.build.outputs.version }}.alfredworkflow
+            geotz
+            timein
+          prerelease: true
+          draft: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
