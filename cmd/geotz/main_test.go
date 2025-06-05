@@ -104,7 +104,7 @@ func TestGeotz_InvalidCity_Plain(t *testing.T) {
 		t.Fatalf("expected error exit code for invalid city")
 	}
 	result := string(out)
-	if !strings.Contains(result, "Could not geocode") {
+	if !strings.Contains(strings.ToLower(result), "could not geocode") {
 		t.Errorf("expected error message in stderr, got: %v", result)
 	}
 }

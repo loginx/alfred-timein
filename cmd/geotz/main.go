@@ -6,10 +6,12 @@ import (
 	"os"
 	"strings"
 
-	"github.com/codingsince1985/geo-golang/openstreetmap"
-	"github.com/ringsaturn/tzf"
-
-	"github.com/loginx/alfred-timein/internal/alfred"
+	"github.com/loginx/alfred-timein/internal/adapters/cache"
+	"github.com/loginx/alfred-timein/internal/adapters/geocoder"
+	"github.com/loginx/alfred-timein/internal/adapters/presenter"
+	"github.com/loginx/alfred-timein/internal/adapters/timezonefinder"
+	"github.com/loginx/alfred-timein/internal/domain"
+	"github.com/loginx/alfred-timein/internal/usecases"
 )
 
 const cacheSeconds = 604800 // 7 days
@@ -32,73 +34,84 @@ func main() {
 		os.Exit(1)
 	}
 
-	cache := alfred.DefaultGeotzCache()
+	// Fast path: Check cache first before initializing expensive dependencies
+	cacheAdapter := cache.NewDefaultCache()
 	cacheKey := strings.ToLower(city)
-	if tz, ok := cache.Get(cacheKey); ok {
-		outputResult(city, tz, true, *format)
+	if tz, ok := cacheAdapter.Get(cacheKey); ok {
+		// Cache hit - create minimal dependencies for formatting only
+		var formatter usecases.OutputFormatter
+		if *format == "alfred" {
+			formatter = presenter.NewAlfredFormatter()
+		} else {
+			formatter = presenter.NewPlainFormatter()
+		}
+		
+		timezone, err := domain.NewTimezone(tz)
+		if err != nil {
+			outputError(err.Error(), *format)
+			os.Exit(1)
+		}
+		
+		output, err := formatter.FormatTimezoneInfo(timezone, city, true)
+		if err != nil {
+			outputError(err.Error(), *format)
+			os.Exit(1)
+		}
+		
+		os.Stdout.Write(output)
 		return
 	}
 
-	geocoder := openstreetmap.Geocoder()
-	loc, err := geocoder.Geocode(city)
-	if err != nil || loc == nil {
-		outputError(fmt.Sprintf("Could not geocode: %s", city), *format)
-		os.Exit(1)
+	// Cache miss - initialize all dependencies and use full use case
+	var formatter usecases.OutputFormatter
+	if *format == "alfred" {
+		formatter = presenter.NewAlfredFormatter()
+	} else {
+		formatter = presenter.NewPlainFormatter()
 	}
 
-	finder, err := tzf.NewDefaultFinder()
+	geocoderAdapter := geocoder.NewOpenStreetMapGeocoder()
+	
+	tzFinder, err := timezonefinder.NewTzfTimezoneFinder()
 	if err != nil {
 		outputError("Failed to initialize timezone finder.", *format)
 		os.Exit(1)
 	}
-	tz := finder.GetTimezoneName(float64(loc.Lng), float64(loc.Lat))
-	if tz == "" {
-		outputError(fmt.Sprintf("Could not resolve timezone for: %s", city), *format)
-		os.Exit(1)
+
+	// Create use case and execute
+	geotzUC := usecases.NewGeotzUseCase(geocoderAdapter, tzFinder, cacheAdapter, formatter)
+	output, err := geotzUC.GetTimezoneFromCity(city)
+	if err != nil {
+		// For plain format, write errors to stderr and exit with error code
+		if *format == "plain" {
+			fmt.Fprintln(os.Stderr, "Error:", err.Error())
+			os.Exit(1)
+		} else {
+			outputError(err.Error(), *format)
+			os.Exit(1)
+		}
 	}
 
-	cache.Set(cacheKey, tz)
-	outputResult(city, tz, false, *format)
-}
-
-func outputResult(city, tz string, cached bool, format string) {
-	if format == "alfred" {
-		out := alfred.NewScriptFilterOutput()
-		out.Cache = &alfred.CacheConfig{Seconds: cacheSeconds}
-		sub := city
-		if cached {
-			sub += " (cached)"
-		}
-		item := alfred.Item{
-			Title:    tz,
-			Subtitle: sub,
-			Arg:      tz,
-			Variables: map[string]interface{}{
-				"city": city,
-			},
-		}
-		out.AddItem(item)
-		os.Stdout.Write(out.MustToJSON())
-	} else {
-		fmt.Println(tz)
-	}
+	os.Stdout.Write(output)
 }
 
 func outputError(msg string, format string) {
+	var formatter usecases.OutputFormatter
 	if format == "alfred" {
-		out := alfred.NewScriptFilterOutput()
-		item := alfred.Item{
-			Title:    "Error",
-			Subtitle: msg,
-			Valid:    boolPtr(false),
-		}
-		out.AddItem(item)
-		os.Stdout.Write(out.MustToJSON())
+		formatter = presenter.NewAlfredFormatter()
 	} else {
-		fmt.Fprintln(os.Stderr, msg)
+		formatter = presenter.NewPlainFormatter()
 	}
-}
-
-func boolPtr(b bool) *bool {
-	return &b
+	
+	output, err := formatter.FormatError(msg)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Error formatting error message:", err)
+		return
+	}
+	
+	if format == "alfred" {
+		os.Stdout.Write(output)
+	} else {
+		fmt.Fprintln(os.Stderr, string(output))
+	}
 }

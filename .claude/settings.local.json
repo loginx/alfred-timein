@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git checkout:*)",
+      "Bash(go test:*)",
+      "Bash(mv:*)",
+      "Bash(go run:*)",
+      "Bash(make:*)",
+      "Bash(rm:*)",
+      "Bash(time:*)",
+      "Bash(ls:*)",
+      "Bash(./bin/geotz:*)",
+      "Bash(./bin/timein:*)",
+      "Bash(git add:*)"
+    ],
+    "deny": []
+  }
+}
