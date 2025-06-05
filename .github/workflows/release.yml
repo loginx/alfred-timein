@@ -65,6 +65,9 @@ jobs:
           echo "changelog<<EOF" >> "$GITHUB_OUTPUT"
           echo -e "$CHANGELOG" >> "$GITHUB_OUTPUT"
           echo "EOF" >> "$GITHUB_OUTPUT"
+      - name: Update workflow version in info.plist (artifact only)
+        run: |
+          plutil -replace version -string "${{ steps.get_version.outputs.version }}" info.plist
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
@@ -91,7 +94,7 @@ jobs:
           chmod +x geotz timein
       - name: Create Alfred workflow archive
         run: |
-          make alfredworkflow VERSION="${{ steps.get_version.outputs.version }}"
+          make alfredworkflow
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:

@@ -93,13 +93,17 @@ jobs:
           lipo -create -output timein timein_amd64 timein_arm64
           rm geotz_amd64 geotz_arm64 timein_amd64 timein_arm64
           
+      - name: Update workflow version for beta
+        run: |
+          plutil -replace version -string "${{ steps.version.outputs.version }}" info.plist
+          
       - name: Prepare Go binaries for beta release
         run: |
           chmod +x geotz timein
           
       - name: Create Alfred workflow archive for beta
         run: |
-          make alfredworkflow VERSION="${{ steps.version.outputs.version }}"
+          make alfredworkflow
           mv TimeIn.alfredworkflow TimeIn-${{ steps.version.outputs.version }}.alfredworkflow
           
       - name: Create GitHub Pre-release
