@@ -107,3 +107,72 @@ func TestLRUCache_ConcurrentAccess(t *testing.T) {
 	
 	wg.Wait()
 }
+
+func TestLRUCache_PreSeed(t *testing.T) {
+	dir := t.TempDir()
+	cache := NewLRUCache(10, time.Hour, dir)
+	
+	// Pre-seed with some entries
+	entries := map[string]string{
+		"london":  "Europe/London",
+		"tokyo":   "Asia/Tokyo",
+		"newyork": "America/New_York",
+	}
+	cache.PreSeed(entries)
+	
+	// Check that pre-seeded entries are available
+	for key, expectedValue := range entries {
+		if value, ok := cache.Get(key); !ok || value != expectedValue {
+			t.Errorf("expected pre-seeded key %s to have value %s, got %s", key, expectedValue, value)
+		}
+	}
+	
+	// Add a user entry with same key - should not be overwritten by pre-seed
+	cache.Set("london", "user-value")
+	cache.PreSeed(map[string]string{"london": "preseed-value"})
+	
+	if value, ok := cache.Get("london"); !ok || value != "user-value" {
+		t.Errorf("expected user value to take precedence over pre-seed, got %s", value)
+	}
+}
+
+func TestLRUCache_SetWithTTL(t *testing.T) {
+	dir := t.TempDir()
+	cache := NewLRUCache(10, time.Hour, dir)
+	
+	// Set entry with custom short TTL
+	cache.SetWithTTL("short", "value", 10*time.Millisecond)
+	
+	// Should be available immediately
+	if value, ok := cache.Get("short"); !ok || value != "value" {
+		t.Errorf("expected entry with custom TTL to be available immediately")
+	}
+	
+	// Should expire after custom TTL
+	time.Sleep(20 * time.Millisecond)
+	if _, ok := cache.Get("short"); ok {
+		t.Errorf("expected entry with custom TTL to expire")
+	}
+}
+
+func TestLRUCache_PreSeedPersistence(t *testing.T) {
+	dir := t.TempDir()
+	cache := NewLRUCache(10, time.Hour, dir)
+	
+	// Pre-seed with entries
+	entries := map[string]string{
+		"paris": "Europe/Paris",
+		"rome":  "Europe/Rome",
+	}
+	cache.PreSeed(entries)
+	
+	// Create new cache instance (simulates restart)
+	cache2 := NewLRUCache(10, time.Hour, dir)
+	
+	// Check that pre-seeded entries are still available
+	for key, expectedValue := range entries {
+		if value, ok := cache2.Get(key); !ok || value != expectedValue {
+			t.Errorf("expected pre-seeded key %s to persist across restart, got %s", key, value)
+		}
+	}
+}

@@ -1,4 +1,4 @@
-.PHONY: all test test-bdd build clean alfredworkflow
+.PHONY: all test test-bdd build preseed clean alfredworkflow
 
 BIN_DIR := bin
 
@@ -23,7 +23,12 @@ build:
 	lipo -create -output $(BIN_DIR)/timein $(BIN_DIR)/timein_amd64 $(BIN_DIR)/timein_arm64
 	rm $(BIN_DIR)/timein_amd64 $(BIN_DIR)/timein_arm64
 
-alfredworkflow: build
+preseed:
+	go build -o preseed ./cmd/preseed
+	./preseed workflow
+	rm preseed
+
+alfredworkflow: build preseed
 	cp $(BIN_DIR)/geotz $(BIN_DIR)/timein workflow/
 	cd workflow && zip -r ../TimeIn.alfredworkflow . -x '*.DS_Store'
 	rm workflow/geotz workflow/timein

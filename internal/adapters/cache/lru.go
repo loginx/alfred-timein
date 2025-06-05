@@ -12,12 +12,14 @@ const (
 	defaultCacheDir  = ".cache"
 	defaultCacheFile = "geotz_cache.json"
 	defaultMaxSize   = 100
-	defaultTTL       = 7 * 24 * time.Hour // 7 days
+	defaultTTL       = 7 * 24 * time.Hour  // 7 days
+	preseedTTL       = 90 * 24 * time.Hour // 90 days for pre-seeded entries
 )
 
 type cacheEntry struct {
 	Value     string    `json:"value"`
 	CreatedAt time.Time `json:"created_at"`
+	TTL       time.Duration `json:"ttl,omitempty"`
 }
 
 // LRUCache implements the Cache interface with LRU eviction and persistence
@@ -54,10 +56,18 @@ func (c *LRUCache) Get(key string) (string, bool) {
 	defer c.mu.Unlock()
 
 	entry, ok := c.entries[key]
-	if !ok || time.Since(entry.CreatedAt) > c.ttl {
-		if ok {
-			c.deleteUnsafe(key)
-		}
+	if !ok {
+		return "", false
+	}
+
+	// Use entry-specific TTL if set, otherwise use cache default
+	ttl := c.ttl
+	if entry.TTL > 0 {
+		ttl = entry.TTL
+	}
+
+	if time.Since(entry.CreatedAt) > ttl {
+		c.deleteUnsafe(key)
 		return "", false
 	}
 
@@ -79,8 +89,45 @@ func (c *LRUCache) Set(key, value string) {
 		}
 	}
 
-	c.entries[key] = cacheEntry{Value: value, CreatedAt: time.Now()}
+	c.entries[key] = cacheEntry{Value: value, CreatedAt: time.Now(), TTL: 0}
 	c.moveToFrontUnsafe(key)
+	c.persistUnsafe()
+}
+
+// SetWithTTL stores a value in the cache with a custom TTL
+func (c *LRUCache) SetWithTTL(key, value string, ttl time.Duration) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if _, ok := c.entries[key]; !ok && len(c.entries) >= c.max {
+		// Evict oldest
+		if len(c.order) > 0 {
+			oldest := c.order[len(c.order)-1]
+			c.deleteUnsafe(oldest)
+		}
+	}
+
+	c.entries[key] = cacheEntry{Value: value, CreatedAt: time.Now(), TTL: ttl}
+	c.moveToFrontUnsafe(key)
+	c.persistUnsafe()
+}
+
+// PreSeed adds entries to the cache with long TTL, used for build-time seeding
+func (c *LRUCache) PreSeed(entries map[string]string) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	for key, value := range entries {
+		// Only add if not already present to avoid overwriting user cache
+		if _, exists := c.entries[key]; !exists {
+			c.entries[key] = cacheEntry{
+				Value:     value,
+				CreatedAt: time.Now(),
+				TTL:       preseedTTL,
+			}
+			c.order = append(c.order, key)
+		}
+	}
 	c.persistUnsafe()
 }
 
@@ -169,7 +216,12 @@ func (c *LRUCache) load() {
 		if err := json.Unmarshal(pair[1], &entry); err != nil {
 			continue
 		}
-		if time.Since(entry.CreatedAt) > c.ttl {
+		// Use entry-specific TTL if set, otherwise use cache default
+		ttl := c.ttl
+		if entry.TTL > 0 {
+			ttl = entry.TTL
+		}
+		if time.Since(entry.CreatedAt) > ttl {
 			continue
 		}
 
