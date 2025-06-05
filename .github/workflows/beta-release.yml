@@ -111,7 +111,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.version }}
-          name: "Alfred TimeIn ${{ steps.version.outputs.version }}"
+          name: "alfred-timein ${{ steps.version.outputs.version }}"
           body: |
             Beta release from the dev branch for testing new features.
             

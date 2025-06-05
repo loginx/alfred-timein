@@ -100,7 +100,7 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          name: "Alfred TimeIn v${{ steps.get_version.outputs.version }}"
+          name: "alfred-timein v${{ steps.get_version.outputs.version }}"
           body: |
             A reliable Alfred workflow for timezone lookups and time conversion.
             

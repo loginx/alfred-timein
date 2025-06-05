@@ -1,6 +1,6 @@
-# Contributing to Alfred TimeIn
+# Contributing to alfred-timein
 
-Thank you for your interest in contributing to Alfred TimeIn!
+Thank you for your interest in contributing to alfred-timein!
 
 ## Commit Message Format
 
