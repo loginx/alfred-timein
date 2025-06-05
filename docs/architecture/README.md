@@ -1,14 +1,14 @@
 # Architecture Overview
 
-alfred-timein is designed around **timezone resolution and time display** as core business capabilities. The architecture prioritizes reliability, performance, and maintainability for global time coordination workflows.
+alfred-timein is designed around **timezone resolution and time display** as core capabilities. The architecture prioritizes reliability, performance, and maintainability for global time coordination workflows.
 
-## Business Context
+## User Context
 
-**Problem**: Remote teams and global travelers need instant, reliable timezone information and current time lookup without complex setup or API dependencies.
+**Problem**: Remote workers and global travelers need instant, reliable timezone information and current time lookup without complex setup or API dependencies.
 
 **Solution**: Fast, offline-capable timezone resolution with intelligent caching and multiple interface options (Alfred + CLI).
 
-## Core Business Capabilities
+## Core Capabilities
 
 ### 1. Timezone Resolution
 **Purpose**: Transform human-readable locations into IANA timezone identifiers
@@ -32,7 +32,7 @@ alfred-timein is designed around **timezone resolution and time display** as cor
 
 ### Clean Architecture
 ```
-Domain Models (Business Rules)
+Domain Models (System Rules)
     ↑
 Use Cases (Application Logic)  
     ↑
@@ -42,7 +42,7 @@ Frameworks & Drivers (External Tools)
 ```
 
 ### Dependency Inversion
-- Business logic depends on interfaces, not implementations
+- Core logic depends on interfaces, not implementations
 - External services (geocoding, timezone data) are abstracted
 - Easy to swap implementations without changing core logic
 

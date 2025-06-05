@@ -116,10 +116,10 @@ If you want to build and run the workflow or CLI tools yourself:
 
 ## Architecture
 
-alfred-timein follows Clean Architecture principles with clear separation of business logic and external dependencies:
+alfred-timein follows Clean Architecture principles with clear separation of core logic and external dependencies:
 
 ```
-Business Domain (What)     Implementation (How)
+Core Features (What)       Implementation (How)
 ├── Timezone Resolution  ←  OpenStreetMap Geocoding + tzf Library  
 ├── Time Display        ←  Go time package + Custom Formatting
 ├── Intelligent Caching ←  LRU Cache with JSON Persistence
@@ -127,12 +127,12 @@ Business Domain (What)     Implementation (How)
 ```
 
 ### Core Components
-- **Domain Layer**: Timezone and Location entities with business rules
+- **Domain Layer**: Timezone and Location entities with system rules
 - **Use Cases**: Timezone lookup and time display workflows  
 - **Adapters**: Geocoding, timezone finding, caching, and output formatting
 - **Interfaces**: CLI tools and Alfred workflow integration
 
-### Business Scenarios
+### User Scenarios
 The `features/` directory contains executable specifications showing exactly what the system does:
 - `timezone_lookup.feature` - Core timezone resolution capabilities
 - `time_display.feature` - Time formatting and display requirements  
@@ -157,7 +157,7 @@ make test-bdd
 
 **Testing Strategy:**
 - **Unit Tests**: Logic validation for each component
-- **BDD Scenarios**: Living documentation of business requirements
+- **BDD Scenarios**: Living documentation of user requirements
 - **Integration Tests**: End-to-end workflow validation
 - **Performance Tests**: Cache behavior and response time validation
 

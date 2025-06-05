@@ -2,18 +2,18 @@
 
 This project uses Behavior-Driven Development to create **executable specifications** that serve as both documentation and automated tests. The BDD scenarios define exactly what alfred-timein does for users.
 
-## Philosophy: Executable Business Requirements
+## Philosophy: Executable User Requirements
 
 BDD scenarios answer three critical questions:
 1. **What** does the system do? (Feature descriptions)
 2. **How** do users interact with it? (Scenario steps)  
-3. **Why** does it matter? (Business value statements)
+3. **Why** does it matter? (User value statements)
 
 Each feature file is a contract that ensures the system delivers real user value, not just technical functionality.
 
 ## Feature Coverage
 
-Our BDD test suite covers five core business domains:
+Our BDD test suite covers five core feature areas:
 
 ### 🌍 **Timezone Lookup by City** (`features/timezone_lookup.feature`)
 - Finding timezones for major cities, landmarks, and locations with spaces
