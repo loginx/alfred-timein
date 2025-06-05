@@ -23,5 +23,6 @@ coverage/
 # IDE/editor
 .idea/
 .vscode/
+.claude/
 
 bin/
