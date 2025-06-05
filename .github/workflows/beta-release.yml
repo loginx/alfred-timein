@@ -97,11 +97,9 @@ jobs:
         run: |
           plutil -replace version -string "${{ steps.version.outputs.version }}" info.plist
           
-      - name: Bundle Go binaries for beta release
+      - name: Prepare Go binaries for beta release
         run: |
-          mkdir -p bin
-          mv geotz timein bin/
-          cd bin && zip ../bin-${{ steps.version.outputs.version }}.zip *
+          chmod +x geotz timein
           
       - name: Create Alfred workflow archive for beta
         run: |
@@ -128,7 +126,8 @@ jobs:
             Build: ${{ github.sha }}
           files: |
             TimeIn-${{ steps.version.outputs.version }}.alfredworkflow
-            bin-${{ steps.version.outputs.version }}.zip
+            geotz
+            timein
           prerelease: true
           draft: false
         env:

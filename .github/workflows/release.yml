@@ -89,11 +89,9 @@ jobs:
           lipo -create -output geotz geotz_amd64 geotz_arm64
           lipo -create -output timein timein_amd64 timein_arm64
           rm geotz_amd64 geotz_arm64 timein_amd64 timein_arm64
-      - name: Bundle Go binaries for release
+      - name: Prepare Go binaries for release
         run: |
-          mkdir -p bin
-          mv geotz timein bin/
-          cd bin && zip ../bin.zip *
+          chmod +x geotz timein
       - name: Create Alfred workflow archive
         run: |
           zip -r TimeIn.alfredworkflow . -x '*.git*' -x '*.github*' -x '*.DS_Store' -x 'node_modules*' -x 'package*.json' -x '*.md' -x 'test*' -x 'src*' -x 'about*' -x 'docs*' -x 'build*' -x '*.zip'
@@ -114,9 +112,12 @@ jobs:
             
             ## CLI Tools
             
-            Download bin.zip for standalone command-line tools (geotz and timein).
+            Download individual command-line tools:
+            - `geotz` - Timezone lookup by coordinates
+            - `timein` - Time conversion and display
           files: |
             TimeIn.alfredworkflow
-            bin.zip
+            geotz
+            timein
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
