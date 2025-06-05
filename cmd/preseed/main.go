@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/loginx/alfred-timein/internal/adapters/cache"
 	"github.com/loginx/alfred-timein/internal/adapters/timezonefinder"
@@ -57,9 +58,12 @@ func main() {
 			continue
 		}
 		
-		// Create cache key (same format as used by geotz)
-		key := fmt.Sprintf("%f,%f", capital.Lat, capital.Lng)
-		entries[key] = timezone
+		// Create cache keys for both coordinates and city names
+		coordKey := fmt.Sprintf("%f,%f", capital.Lat, capital.Lng)
+		cityKey := strings.ToLower(capital.Name)
+		
+		entries[coordKey] = timezone
+		entries[cityKey] = timezone
 		
 		fmt.Printf("  %s, %s -> %s\n", capital.Name, capital.Country, timezone)
 	}
@@ -67,5 +71,5 @@ func main() {
 	// Pre-seed the cache
 	c.PreSeed(entries)
 
-	fmt.Printf("Successfully pre-seeded cache with %d entries in %s\n", len(entries), filepath.Join(cacheDir, "geotz_cache.json"))
+	fmt.Printf("Successfully pre-seeded cache with %d entries (%d cities × 2 key types) in %s\n", len(entries), len(capitals), filepath.Join(cacheDir, "geotz_cache.json"))
 }
