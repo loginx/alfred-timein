@@ -51,6 +51,21 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          name: "Alfred TimeIn v${{ steps.get_version.outputs.version }}"
+          body: |
+            A reliable Alfred workflow for timezone lookups and time conversion.
+            
+            Installation:
+            Download TimeIn.alfredworkflow and open with Alfred.
+            
+            Features:
+            - Fast timezone lookup by city name or landmark
+            - Intelligent caching for instant results
+            - Clean Architecture with BDD testing
+            - Optimized binary size and performance
+            
+            CLI Tools:
+            Download bin.zip for standalone command-line tools (geotz and timein).
           files: |
             TimeIn.alfredworkflow
             bin.zip

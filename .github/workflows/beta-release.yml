@@ -19,7 +19,7 @@ jobs:
           # Use commit count and short SHA for beta version
           COUNT=$(git rev-list --count HEAD)
           SHA=$(git rev-parse --short HEAD)
-          VERSION="beta-${COUNT}-${SHA}"
+          VERSION="v0.0.0-beta.${COUNT}+${SHA}"
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
           echo "Beta version: ${VERSION}"
           
@@ -68,20 +68,18 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.version }}
-          name: "Beta ${{ steps.version.outputs.version }}"
+          name: "Alfred TimeIn ${{ steps.version.outputs.version }}"
           body: |
-            🚀 **Beta Release - Development Build**
+            Beta release from the dev branch for testing new features.
             
-            This is a beta release from the `dev` branch for testing new features.
+            WARNING: This is not a stable release. Use at your own risk.
             
-            **⚠️ Use at your own risk - this is not a stable release**
-            
-            **Changes in this build:**
+            Changes in this build:
             - Based on commit ${{ github.sha }}
             - Automatic beta build from dev branch
             
-            **Installation:**
-            Download `TimeIn-${{ steps.version.outputs.version }}.alfredworkflow` and open with Alfred.
+            Installation:
+            Download TimeIn-${{ steps.version.outputs.version }}.alfredworkflow and open with Alfred.
           files: |
             TimeIn-${{ steps.version.outputs.version }}.alfredworkflow
             bin-${{ steps.version.outputs.version }}.zip
