@@ -8,7 +8,7 @@ test:
 	go test ./...
 
 test-bdd:
-	go test -run TestBDD -timeout 60s
+	go test -tags=bdd -run TestBDD -timeout 60s
 
 test-all: test test-bdd
 

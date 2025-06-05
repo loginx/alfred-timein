@@ -18,6 +18,7 @@ require (
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/paulmach/orb v0.11.1 // indirect
+	github.com/ringsaturn/tzf v1.0.0 // indirect
 	github.com/ringsaturn/tzf-rel-lite v0.0.2025-b // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/tidwall/geoindex v1.7.0 // indirect

@@ -22,7 +22,7 @@ jobs:
         run: go test ./...
         
       - name: Run BDD tests
-        run: make test-bdd
+        run: go test -tags=bdd -run TestBDD -timeout 60s
         
       - name: Run all tests with coverage
         run: go test -coverprofile=coverage.out ./...

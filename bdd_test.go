@@ -1,3 +1,6 @@
+//go:build bdd
+// +build bdd
+
 package main
 
 import (
