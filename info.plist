@@ -80,12 +80,12 @@
 				<string>Searching</string>
 				<key>script</key>
 				<string>for exe in geotz timein; do
-  bin="./bin/$exe"
+  bin="./$exe"
   if xattr "$bin" 2&gt;/dev/null | grep -q com.apple.quarantine; then
     xattr -dr com.apple.quarantine "$bin" 2&gt;/dev/null
   fi
 done
-./bin/geotz "${1}" | ./bin/timein --format=alfred</string>
+./geotz "${1}" | ./timein --format=alfred</string>
 				<key>scriptargtype</key>
 				<integer>1</integer>
 				<key>scriptfile</key>
