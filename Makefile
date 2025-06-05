@@ -24,9 +24,9 @@ build:
 	rm $(BIN_DIR)/timein_amd64 $(BIN_DIR)/timein_arm64
 
 preseed:
-	go build -o preseed ./cmd/preseed
-	./preseed workflow
-	rm preseed
+	go build -o .preseed ./cmd/preseed
+	./.preseed workflow
+	rm .preseed
 
 alfredworkflow: build preseed
 	cp $(BIN_DIR)/geotz $(BIN_DIR)/timein workflow/

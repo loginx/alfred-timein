@@ -6,6 +6,7 @@
 *.dylib
 *.test
 *.out
+.preseed
 
 # Editor/OS
 .DS_Store
