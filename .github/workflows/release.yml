@@ -25,6 +25,8 @@ jobs:
           go-version: '1.21'
       - name: Run Go tests
         run: go test ./...
+      - name: Run BDD tests
+        run: make test-bdd
       - name: Build Go binaries (amd64)
         run: |
           GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -trimpath -o geotz_amd64 ./cmd/geotz

@@ -1,4 +1,4 @@
-.PHONY: all test build clean alfredworkflow
+.PHONY: all test test-bdd build clean alfredworkflow
 
 BIN_DIR := bin
 
@@ -6,6 +6,11 @@ all: build
 
 test:
 	go test ./...
+
+test-bdd:
+	go test -run TestBDD -timeout 60s
+
+test-all: test test-bdd
 
 build:
 	mkdir -p $(BIN_DIR)

@@ -17,6 +17,8 @@
 
 # Ignore test output
 coverage/
+# BDD features should be tracked
+!features/
 
 # Go modules
 
