@@ -27,4 +27,7 @@ coverage/
 .vscode/
 .claude/
 
+# Claude project memory (local only)
+CLAUDE.local.md
+
 bin/
