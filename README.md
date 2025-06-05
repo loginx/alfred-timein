@@ -1,8 +1,10 @@
-# Alfred Workflow: `timein <city>`
+# alfred-timein
 
-## Usage
+**Fast timezone lookup and time conversion for global collaboration**
 
-Search for the current local time in any city via the `timein` keyword in Alfred, or use the CLI tools directly.
+A reliable Alfred workflow and CLI toolset for instantly finding current times in any city worldwide. Built for remote teams, frequent travelers, and anyone coordinating across time zones.
+
+## Quick Start
 
 <p align="center">
   <img src="workflow/screenshot.png" alt="Alfred Timein Workflow Screenshot" width="600" />
@@ -44,22 +46,31 @@ bin/geotz --format=alfred "Eiffel Tower"
 {"items":[{"title":"Europe/Paris","subtitle":"Eiffel Tower (cached)","arg":"Europe/Paris","variables":{"city":"Eiffel Tower"}}],"cache":{"seconds":604800}}
 ```
 
-## Description
+## Core Capabilities
 
-A fast, zero-dependency Alfred workflow and CLI toolset that tells you the current local time in any city using natural language input. Powered by Go for maximum speed and reliability.
+### Timezone Lookup
+Transform any location into its IANA timezone identifier:
+- **Cities**: `"London" → "Europe/London"`
+- **Landmarks**: `"Eiffel Tower" → "Europe/Paris"`
+- **Airports**: `"JFK" → "America/New_York"`
+- **Postal codes**: `"90210" → "America/Los_Angeles"`
 
-## Features
+### Current Time Display  
+Get human-readable local time for any timezone:
+- **Formatted output**: `"Monday, 12 May 2025, 1:38:07 AM"`
+- **Multiple formats**: Plain text or Alfred JSON
+- **Locale-aware**: Includes day, date, and time with timezone abbreviation
 
-- Natural city name input (`"timein London"`, `"timein São Paulo"`)
-- Lookup by airport codes (e.g., `"timein JFK"` for John F. Kennedy International Airport)
-- Lookup by postal codes (e.g., `"timein 90210"` for Beverly Hills, California)
-- Lookup by landmarks (e.g., `"timein Eiffel Tower"`, `"timein Statue of Liberty"`)
-- Instant results via Alfred Script Filter or CLI
-- Location resolution via OpenStreetMap (no API keys required)
-- Accurate timezone mapping with IANA strings (`America/Toronto`)
-- Persistent disk caching for repeat queries (city → timezone) in `./.cache/`
-- Native, universal Go binaries for maximum performance
-- Fully tested
+### Performance Features
+- **Intelligent caching**: 6ms response for cached locations
+- **Offline timezone data**: No API dependencies for timezone resolution
+- **OpenStreetMap geocoding**: No API keys required
+- **Universal binaries**: Native performance on Intel and Apple Silicon
+
+### Integration Options
+- **Alfred workflow**: Type `timein bangkok` for instant results  
+- **CLI tools**: `geotz` and `timein` for scripting and automation
+- **Pipeline support**: `geotz Bangkok | timein` for complex workflows
 
 ## Installation
 
@@ -103,15 +114,52 @@ If you want to build and run the workflow or CLI tools yourself:
 - On first lookup, the workflow queries OpenStreetMap and resolves the timezone; subsequent lookups are instant and do not require network access.
 - You can safely delete the `.cache/` directory to clear the cache.
 
-## Testing
+## Architecture
 
-Run Go tests with:
+alfred-timein follows Clean Architecture principles with clear separation of business logic and external dependencies:
 
-```bash
-make test
+```
+Business Domain (What)     Implementation (How)
+├── Timezone Resolution  ←  OpenStreetMap Geocoding + tzf Library  
+├── Time Display        ←  Go time package + Custom Formatting
+├── Intelligent Caching ←  LRU Cache with JSON Persistence
+└── Multi-format Output ←  Plain Text + Alfred JSON Presenters
 ```
 
-Tests cover core logic: geocoding, timezone resolution, formatting, caching, and edge cases.
+### Core Components
+- **Domain Layer**: Timezone and Location entities with business rules
+- **Use Cases**: Timezone lookup and time display workflows  
+- **Adapters**: Geocoding, timezone finding, caching, and output formatting
+- **Interfaces**: CLI tools and Alfred workflow integration
+
+### Business Scenarios
+The `features/` directory contains executable specifications showing exactly what the system does:
+- `timezone_lookup.feature` - Core timezone resolution capabilities
+- `time_display.feature` - Time formatting and display requirements  
+- `alfred_integration.feature` - Alfred workflow behavior
+- `cli_workflow.feature` - Command-line interface behavior
+- `caching_behavior.feature` - Performance and persistence requirements
+
+## Testing & Quality
+
+This project uses comprehensive testing to ensure reliability:
+
+```bash
+# Run all tests
+make test-all
+
+# Unit tests only  
+make test
+
+# BDD scenarios only
+make test-bdd
+```
+
+**Testing Strategy:**
+- **Unit Tests**: Logic validation for each component
+- **BDD Scenarios**: Living documentation of business requirements
+- **Integration Tests**: End-to-end workflow validation
+- **Performance Tests**: Cache behavior and response time validation
 
 ## Known Limitations
 

@@ -1,10 +1,15 @@
-# Behavior-Driven Development (BDD) Testing
+# Living Documentation Through BDD
 
-This project implements comprehensive BDD testing using [Godog](https://github.com/cucumber/godog), the official Cucumber implementation for Go.
+This project uses Behavior-Driven Development to create **executable specifications** that serve as both documentation and automated tests. The BDD scenarios define exactly what alfred-timein does for users.
 
-## Philosophy
+## Philosophy: Executable Business Requirements
 
-BDD testing serves as **living documentation** of our business rules and user requirements. Each feature file represents a contract between stakeholders, documenting what the system should do in natural language that both technical and non-technical team members can understand.
+BDD scenarios answer three critical questions:
+1. **What** does the system do? (Feature descriptions)
+2. **How** do users interact with it? (Scenario steps)  
+3. **Why** does it matter? (Business value statements)
+
+Each feature file is a contract that ensures the system delivers real user value, not just technical functionality.
 
 ## Feature Coverage
 

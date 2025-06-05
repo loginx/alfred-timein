@@ -14,6 +14,7 @@ A Go-based Alfred workflow for timezone lookups and time conversion. Uses Clean 
 ### Commit Messages
 - **Format**: Use Conventional Commits (`feat:`, `fix:`, `chore:`, `ci:`, `refactor:`, `docs:`)
 - **Automation**: Commit messages auto-generate changelogs for releases
+- **Guidelines**: Commit automatically when you've completed an atomic unit of work. Your commit messages should not be overly verbose.
 - **Examples**: `feat: add timezone caching`, `fix: resolve geocoding error`
 
 ### Release Process
