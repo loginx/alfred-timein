@@ -23,6 +23,49 @@ jobs:
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
           echo "Beta version: ${VERSION}"
           
+      - name: Generate changelog
+        id: changelog
+        run: |
+          # Get commits since last release
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -z "$LAST_TAG" ]; then
+            # If no tags, get all commits
+            COMMITS=$(git log --pretty=format:"- %s" --reverse)
+          else
+            # Get commits since last tag
+            COMMITS=$(git log ${LAST_TAG}..HEAD --pretty=format:"- %s" --reverse)
+          fi
+          
+          # Filter and categorize commits
+          FEATURES=$(echo "$COMMITS" | grep "^- feat:" | sed 's/^- feat: /- /' || true)
+          FIXES=$(echo "$COMMITS" | grep "^- fix:" | sed 's/^- fix: /- /' || true)
+          REFACTOR=$(echo "$COMMITS" | grep "^- refactor:" | sed 's/^- refactor: /- /' || true)
+          CHORES=$(echo "$COMMITS" | grep "^- chore:" | sed 's/^- chore: /- /' || true)
+          CI=$(echo "$COMMITS" | grep "^- ci:" | sed 's/^- ci: /- /' || true)
+          
+          # Build changelog
+          CHANGELOG=""
+          if [ -n "$FEATURES" ]; then
+            CHANGELOG="${CHANGELOG}### Features${FEATURES}\n\n"
+          fi
+          if [ -n "$FIXES" ]; then
+            CHANGELOG="${CHANGELOG}### Bug Fixes${FIXES}\n\n"
+          fi
+          if [ -n "$REFACTOR" ]; then
+            CHANGELOG="${CHANGELOG}### Code Refactoring${REFACTOR}\n\n"
+          fi
+          if [ -n "$CI" ]; then
+            CHANGELOG="${CHANGELOG}### CI/CD${CI}\n\n"
+          fi
+          if [ -n "$CHORES" ]; then
+            CHANGELOG="${CHANGELOG}### Maintenance${CHORES}\n\n"
+          fi
+          
+          # Save changelog to output
+          echo "changelog<<EOF" >> "$GITHUB_OUTPUT"
+          echo -e "$CHANGELOG" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+          
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
@@ -74,12 +117,15 @@ jobs:
             
             WARNING: This is not a stable release. Use at your own risk.
             
-            Changes in this build:
-            - Based on commit ${{ github.sha }}
-            - Automatic beta build from dev branch
+            ## Changes Since Last Release
             
-            Installation:
+            ${{ steps.changelog.outputs.changelog }}
+            
+            ## Installation
+            
             Download TimeIn-${{ steps.version.outputs.version }}.alfredworkflow and open with Alfred.
+            
+            Build: ${{ github.sha }}
           files: |
             TimeIn-${{ steps.version.outputs.version }}.alfredworkflow
             bin-${{ steps.version.outputs.version }}.zip
