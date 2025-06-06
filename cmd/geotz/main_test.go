@@ -10,8 +10,11 @@ import (
 )
 
 func TestGeotz_ValidCity_Alfred(t *testing.T) {
-	os.RemoveAll(".cache")
-	cmd := exec.Command("go", "run", "./main.go", "--format=alfred", "Berlin")
+	// Clean cache from all possible locations
+	os.Remove("geotz_cache.json")
+	os.Remove("../../geotz_cache.json")
+	os.RemoveAll("../../.cache")
+	cmd := exec.Command("go", "run", "./main.go", "--format=alfred", "Zurich")
 	out, err := cmd.Output()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -31,7 +34,7 @@ func TestGeotz_ValidCity_Alfred(t *testing.T) {
 	if item["arg"] == "" {
 		t.Errorf("arg should not be empty")
 	}
-	if !strings.Contains(strings.ToLower(item["subtitle"].(string)), "berlin") {
+	if !strings.Contains(strings.ToLower(item["subtitle"].(string)), "zurich") {
 		t.Errorf("subtitle should contain city name")
 	}
 	if strings.Contains(item["subtitle"].(string), "cached") {
@@ -40,8 +43,10 @@ func TestGeotz_ValidCity_Alfred(t *testing.T) {
 }
 
 func TestGeotz_ValidCity_Plain(t *testing.T) {
-	os.RemoveAll(".cache")
-	cmd := exec.Command("go", "run", "./main.go", "--format=plain", "Paris")
+	os.Remove("geotz_cache.json")
+	os.Remove("../../geotz_cache.json")
+	os.RemoveAll("../../.cache")
+	cmd := exec.Command("go", "run", "./main.go", "--format=plain", "Zurich")
 	out, err := cmd.Output()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -53,8 +58,10 @@ func TestGeotz_ValidCity_Plain(t *testing.T) {
 }
 
 func TestGeotz_CacheHit_Alfred(t *testing.T) {
-	os.RemoveAll(".cache")
-	city := "Paris"
+	os.Remove("geotz_cache.json")
+	os.Remove("../../geotz_cache.json")
+	os.RemoveAll("../../.cache")
+	city := "Zurich"
 	cmd := exec.Command("go", "run", "./main.go", "--format=alfred", city)
 	_, err := cmd.Output()
 	if err != nil {
@@ -76,7 +83,9 @@ func TestGeotz_CacheHit_Alfred(t *testing.T) {
 }
 
 func TestGeotz_InvalidCity_Alfred(t *testing.T) {
-	os.RemoveAll(".cache")
+	os.Remove("geotz_cache.json")
+	os.Remove("../../geotz_cache.json")
+	os.RemoveAll("../../.cache")
 	cmd := exec.Command("go", "run", "./main.go", "--format=alfred", "NotARealCity123456")
 	out, _ := cmd.Output()
 	var parsed map[string]interface{}
@@ -97,7 +106,9 @@ func TestGeotz_InvalidCity_Alfred(t *testing.T) {
 }
 
 func TestGeotz_InvalidCity_Plain(t *testing.T) {
-	os.RemoveAll(".cache")
+	os.Remove("geotz_cache.json")
+	os.Remove("../../geotz_cache.json")
+	os.RemoveAll("../../.cache")
 	cmd := exec.Command("go", "run", "./main.go", "--format=plain", "NotARealCity123456")
 	out, err := cmd.CombinedOutput()
 	if err == nil {
