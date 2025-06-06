@@ -10,7 +10,10 @@ test:
 test-bdd:
 	go test -tags=bdd -run TestBDD -timeout 60s
 
-test-all: test test-bdd
+test-integration:
+	go test -tags=bdd -run "TestActualCachePreSeedingIntegration|TestPerformanceRegression" -timeout 120s
+
+test-all: test test-bdd test-integration
 
 build:
 	mkdir -p $(BIN_DIR)

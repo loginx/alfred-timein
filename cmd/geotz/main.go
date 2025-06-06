@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/loginx/alfred-timein/internal/adapters/cache"
 	"github.com/loginx/alfred-timein/internal/adapters/geocoder"
@@ -13,8 +14,6 @@ import (
 	"github.com/loginx/alfred-timein/internal/domain"
 	"github.com/loginx/alfred-timein/internal/usecases"
 )
-
-const cacheSeconds = 604800 // 7 days
 
 func main() {
 	format := flag.String("format", "plain", "Output format: plain or alfred")
@@ -35,7 +34,13 @@ func main() {
 	}
 
 	// Fast path: Check cache first before initializing expensive dependencies
-	cacheAdapter := cache.NewDefaultCache()
+	// Try to use pre-seeded cache from workflow directory, fallback to default cache
+	var cacheAdapter *cache.LRUCache
+	if _, err := os.Stat("workflow/geotz_cache.json"); err == nil {
+		cacheAdapter = cache.NewLRUCache(1000, 30*24*time.Hour, "workflow")
+	} else {
+		cacheAdapter = cache.NewDefaultCache()
+	}
 	cacheKey := strings.ToLower(city)
 	if tz, ok := cacheAdapter.Get(cacheKey); ok {
 		// Cache hit - create minimal dependencies for formatting only
@@ -46,11 +51,8 @@ func main() {
 			formatter = presenter.NewPlainFormatter()
 		}
 		
-		timezone, err := domain.NewTimezone(tz)
-		if err != nil {
-			outputError(err.Error(), *format)
-			os.Exit(1)
-		}
+		// Skip expensive timezone validation for cached values - they're already validated
+		timezone := &domain.Timezone{Name: tz}
 		
 		output, err := formatter.FormatTimezoneInfo(timezone, city, true)
 		if err != nil {
