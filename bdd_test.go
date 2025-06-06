@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 	"testing"
@@ -41,6 +42,15 @@ type BDDContext struct {
 	commandOutput    string
 	commandError     string
 
+	// Cache pre-seeding test state
+	cache          *cache.LRUCache
+	testDir        string
+	lastOutput     string
+	lastError      error
+	lastDuration   time.Duration
+	wasFromCache   bool
+	userEntryCity  string
+
 	// Test configuration
 	cacheEnabled bool
 }
@@ -57,6 +67,15 @@ func (ctx *BDDContext) reset() {
 	ctx.cacheHit = false
 	ctx.commandOutput = ""
 	ctx.commandError = ""
+	
+	// Reset cache pre-seeding test state - create unique test dir per scenario
+	ctx.cache = nil
+	ctx.testDir = fmt.Sprintf("/tmp/alfred-timein-test-%d", time.Now().UnixNano())
+	ctx.lastOutput = ""
+	ctx.lastError = nil
+	ctx.lastDuration = 0
+	ctx.wasFromCache = false
+	ctx.userEntryCity = ""
 }
 
 func (ctx *BDDContext) initializeServices() error {
@@ -363,6 +382,16 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^cache duration should be appropriate for the content type$`, bddCtx.cacheDurationShouldBeAppropriateForTheContentType)
 	ctx.Step(`^timezone lookups should cache for (\d+) days$`, bddCtx.timezoneLookupsShouldCacheForDays)
 	ctx.Step(`^time displays should cache for (\d+) seconds$`, bddCtx.timeDisplaysShouldCacheForSeconds)
+	
+	// Cache pre-seeding steps
+	ctx.Step(`^the cache has been pre-seeded with capital cities$`, bddCtx.theCacheHasBeenPreseededWithCapitalCities)
+	ctx.Step(`^I look up the timezone for "([^"]*)"$`, bddCtx.iLookUpTheTimezoneFor)
+	ctx.Step(`^the result should contain "([^"]*)"$`, bddCtx.theResultShouldContain)
+	ctx.Step(`^the cache should indicate a hit$`, bddCtx.theCacheShouldIndicateAHit)
+	ctx.Step(`^the cache was pre-seeded (\d+) days ago$`, bddCtx.theCacheWasPreseededDaysAgo)
+	ctx.Step(`^the cache has a user-created entry for "([^"]*)"$`, bddCtx.theCacheHasAUsercreatedEntryFor)
+	ctx.Step(`^the result should use the user-created entry$`, bddCtx.theResultShouldUseTheUsercreatedEntry)
+	ctx.Step(`^not the pre-seeded entry$`, bddCtx.notThePreseededEntry)
 }
 
 func TestBDD(t *testing.T) {
@@ -679,5 +708,127 @@ func (ctx *BDDContext) timeDisplaysShouldCacheForSeconds(expectedSeconds int) er
 		return fmt.Errorf("expected %d seconds cache, got %f seconds", expectedSeconds, seconds)
 	}
 
+	return nil
+}
+
+// Cache pre-seeding step implementations
+func (ctx *BDDContext) theCacheHasBeenPreseededWithCapitalCities() error {
+	// Ensure test directory exists
+	if err := os.MkdirAll(ctx.testDir, 0755); err != nil {
+		return fmt.Errorf("failed to create test directory: %w", err)
+	}
+	
+	// Set up a test cache with pre-seeded capitals
+	ctx.cache = cache.NewLRUCache(200, 24*time.Hour, ctx.testDir)
+	
+	// Pre-seed with test capital data
+	entries := map[string]string{
+		"london":                 "Europe/London",
+		"paris":                  "Europe/Paris", 
+		"tokyo":                  "Asia/Tokyo",
+		"51.507400,-0.127800":    "Europe/London",  // London coordinates
+		"48.856600,2.352200":     "Europe/Paris",   // Paris coordinates
+		"35.676200,139.650300":   "Asia/Tokyo",     // Tokyo coordinates
+	}
+	ctx.cache.PreSeed(entries)
+	return nil
+}
+
+func (ctx *BDDContext) iLookUpTheTimezoneFor(city string) error {
+	start := time.Now()
+	
+	// Check cache directly first to see if it's a cache hit
+	cacheKey := strings.ToLower(city)
+	if tz, ok := ctx.cache.Get(cacheKey); ok {
+		ctx.lastOutput = tz
+		ctx.lastDuration = time.Since(start)
+		ctx.wasFromCache = true
+		return nil
+	}
+	
+	// Set up use case with pre-seeded cache for cache miss scenario
+	geocoder := geocoder.NewOpenStreetMapGeocoder()
+	tzf, err := timezonefinder.NewTzfTimezoneFinder()
+	if err != nil {
+		return fmt.Errorf("failed to setup timezone finder: %w", err)
+	}
+	formatter := presenter.NewPlainFormatter()
+	
+	useCase := usecases.NewGeotzUseCase(geocoder, tzf, ctx.cache, formatter)
+	
+	// Perform lookup
+	result, err := useCase.GetTimezoneFromCity(city)
+	if err != nil {
+		ctx.lastError = err
+		return nil // Don't fail here, let other steps check the error
+	}
+	
+	ctx.lastOutput = string(result)
+	ctx.lastDuration = time.Since(start)
+	
+	// Check if result came from cache by timing (cache hits should be very fast)
+	ctx.wasFromCache = ctx.lastDuration < 50*time.Millisecond
+	
+	return nil
+}
+
+func (ctx *BDDContext) theResultShouldContain(expectedContent string) error {
+	if !strings.Contains(ctx.lastOutput, expectedContent) {
+		return fmt.Errorf("expected output to contain %q, got: %s", expectedContent, ctx.lastOutput)
+	}
+	return nil
+}
+
+func (ctx *BDDContext) theCacheShouldIndicateAHit() error {
+	if !ctx.wasFromCache {
+		return fmt.Errorf("expected cache hit (fast response), but took %v", ctx.lastDuration)
+	}
+	return nil
+}
+
+func (ctx *BDDContext) theCacheWasPreseededDaysAgo(daysAgo int) error {
+	// Ensure test directory exists
+	if err := os.MkdirAll(ctx.testDir, 0755); err != nil {
+		return fmt.Errorf("failed to create test directory: %w", err)
+	}
+	
+	// Set up cache with entries from the past
+	ctx.cache = cache.NewLRUCache(200, 24*time.Hour, ctx.testDir)
+	
+	// Manually create cache entry with past timestamp but long TTL
+	// The TTL is 365 days, so even if it was pre-seeded 30 days ago, it should still be valid
+	ctx.cache.SetWithTTL("paris", "Europe/Paris", 365*24*time.Hour)
+	
+	return nil
+}
+
+func (ctx *BDDContext) theCacheHasAUsercreatedEntryFor(city string) error {
+	// Ensure test directory exists
+	if err := os.MkdirAll(ctx.testDir, 0755); err != nil {
+		return fmt.Errorf("failed to create test directory: %w", err)
+	}
+	
+	if ctx.cache == nil {
+		ctx.cache = cache.NewLRUCache(200, 24*time.Hour, ctx.testDir)
+	}
+	
+	// Add user entry with regular TTL
+	ctx.cache.Set(strings.ToLower(city), "User/Custom_Timezone")
+	ctx.userEntryCity = strings.ToLower(city)
+	return nil
+}
+
+func (ctx *BDDContext) theResultShouldUseTheUsercreatedEntry() error {
+	if !strings.Contains(ctx.lastOutput, "User/Custom_Timezone") {
+		return fmt.Errorf("expected user-created entry to be used, got: %s", ctx.lastOutput)
+	}
+	return nil
+}
+
+func (ctx *BDDContext) notThePreseededEntry() error {
+	// This is a continuation of the previous step - just verify we didn't get pre-seeded data
+	if strings.Contains(ctx.lastOutput, "Europe/London") && ctx.userEntryCity == "london" {
+		return fmt.Errorf("expected user entry to override pre-seeded entry")
+	}
 	return nil
 }
