@@ -34,33 +34,37 @@ func main() {
 	}
 
 	// Fast path: Check cache first before initializing expensive dependencies
-	// Try to use pre-seeded cache from workflow directory, fallback to default cache
+	// Try to use pre-seeded cache from workflow directory or current directory (Alfred), fallback to default cache
 	var cacheAdapter *cache.LRUCache
 	if _, err := os.Stat("workflow/geotz_cache.json"); err == nil {
+		// Running from project root (development)
+		fmt.Fprintf(os.Stderr, "DEBUG: Using workflow/geotz_cache.json\n")
 		cacheAdapter = cache.NewLRUCache(1000, 30*24*time.Hour, "workflow")
+	} else if _, err := os.Stat("geotz_cache.json"); err == nil {
+		// Running from Alfred workflow directory
+		fmt.Fprintf(os.Stderr, "DEBUG: Using geotz_cache.json in current dir\n")
+		cacheAdapter = cache.NewLRUCache(1000, 30*24*time.Hour, ".")
 	} else {
+		// No pre-seeded cache found, use default
+		fmt.Fprintf(os.Stderr, "DEBUG: Using default cache\n")
 		cacheAdapter = cache.NewDefaultCache()
 	}
 	cacheKey := strings.ToLower(city)
 	if tz, ok := cacheAdapter.Get(cacheKey); ok {
-		// Cache hit - create minimal dependencies for formatting only
-		var formatter usecases.OutputFormatter
+		// Cache hit - skip expensive validation, just format and output
 		if *format == "alfred" {
-			formatter = presenter.NewAlfredFormatter()
+			formatter := presenter.NewAlfredFormatter()
+			timezone := &domain.Timezone{Name: tz}
+			output, err := formatter.FormatTimezoneInfo(timezone, city, true)
+			if err != nil {
+				outputError(err.Error(), *format)
+				os.Exit(1)
+			}
+			os.Stdout.Write(output)
 		} else {
-			formatter = presenter.NewPlainFormatter()
+			// Plain format - just output timezone name directly for maximum speed
+			fmt.Println(tz)
 		}
-		
-		// Skip expensive timezone validation for cached values - they're already validated
-		timezone := &domain.Timezone{Name: tz}
-		
-		output, err := formatter.FormatTimezoneInfo(timezone, city, true)
-		if err != nil {
-			outputError(err.Error(), *format)
-			os.Exit(1)
-		}
-		
-		os.Stdout.Write(output)
 		return
 	}
 
