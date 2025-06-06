@@ -34,15 +34,8 @@ func main() {
 	}
 
 	// Fast path: Check cache first before initializing expensive dependencies
-	// Try to use pre-seeded cache (Alfred workflow), fallback to default cache (CLI)
-	var cacheAdapter *cache.LRUCache
-	if _, err := os.Stat("geotz_cache.json"); err == nil {
-		// Alfred workflow - pre-seeded cache in same directory as binary
-		cacheAdapter = cache.NewLRUCache(1000, 30*24*time.Hour, ".")
-	} else {
-		// CLI - use default cache directory
-		cacheAdapter = cache.NewDefaultCache()
-	}
+	// Always use geotz_cache.json in current directory
+	cacheAdapter := cache.NewLRUCache(1000, 30*24*time.Hour, ".")
 	cacheKey := strings.ToLower(city)
 	if tz, ok := cacheAdapter.Get(cacheKey); ok {
 		// Cache hit - skip expensive validation, just format and output

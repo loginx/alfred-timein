@@ -20,11 +20,8 @@ type Capital struct {
 }
 
 func main() {
-	if len(os.Args) < 2 {
-		log.Fatal("Usage: preseed <cache-directory>")
-	}
-
-	cacheDir := os.Args[1]
+	// Always generate cache in current directory
+	cacheDir := "."
 	
 	// Load capitals data
 	capitalsData, err := os.ReadFile("data/capitals.json")

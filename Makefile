@@ -28,14 +28,14 @@ build:
 
 preseed:
 	go build -o .preseed ./cmd/preseed
-	./.preseed workflow
+	./.preseed
 	rm .preseed
 
 alfredworkflow: build preseed
 	cp $(BIN_DIR)/geotz $(BIN_DIR)/timein workflow/
-	cp info.plist icon.png workflow/
+	cp info.plist icon.png geotz_cache.json workflow/
 	cd workflow && zip -r ../TimeIn.alfredworkflow . -x '*.DS_Store'
-	rm workflow/geotz workflow/timein workflow/info.plist workflow/icon.png
+	rm workflow/geotz workflow/timein workflow/info.plist workflow/icon.png workflow/geotz_cache.json
 
 clean:
 	rm -rf $(BIN_DIR)/*.alfredworkflow $(BIN_DIR)/geotz $(BIN_DIR)/timein 
