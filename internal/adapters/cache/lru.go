@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	defaultCacheDir  = ".cache"
+	defaultCacheDir  = "."
 	defaultCacheFile = "geotz_cache.json"
 	defaultMaxSize   = 100
 	defaultTTL       = 30 * 24 * time.Hour  // 30 days - longer for better UX

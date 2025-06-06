@@ -109,10 +109,10 @@ If you want to build and run the workflow or CLI tools yourself:
 
 ## Caching Details
 
-- The persistent cache is stored in the `./.cache/` directory (ignored by git).
+- The persistent cache is stored in `./geotz_cache.json` (ignored by git).
 - The cache maps city names (lowercased) to their resolved IANA timezone.
 - On first lookup, the workflow queries OpenStreetMap and resolves the timezone; subsequent lookups are instant and do not require network access.
-- You can safely delete the `.cache/` directory to clear the cache.
+- You can safely delete the `geotz_cache.json` file to clear the cache.
 
 ## Architecture
 

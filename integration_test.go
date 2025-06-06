@@ -186,7 +186,7 @@ func TestAlfredWorkflowProvidesExpectedJSONStructure(t *testing.T) {
 // "As a user, I should be able to pipe geotz output to timein"
 func TestPipelineWorkflowWorksEndToEnd(t *testing.T) {
 	// Clear cache for predictable timing
-	os.RemoveAll(".cache")
+	os.Remove("geotz_cache.json")
 	
 	// Given a user wants to pipe geotz to timein, use shell to handle pipe
 	cmd := exec.Command("sh", "-c", "go run ./cmd/geotz Berlin | go run ./cmd/timein")
