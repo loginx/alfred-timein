@@ -34,19 +34,13 @@ func main() {
 	}
 
 	// Fast path: Check cache first before initializing expensive dependencies
-	// Try to use pre-seeded cache from workflow directory or current directory (Alfred), fallback to default cache
+	// Try to use pre-seeded cache (Alfred workflow), fallback to default cache (CLI)
 	var cacheAdapter *cache.LRUCache
-	if _, err := os.Stat("workflow/geotz_cache.json"); err == nil {
-		// Running from project root (development)
-		fmt.Fprintf(os.Stderr, "DEBUG: Using workflow/geotz_cache.json\n")
-		cacheAdapter = cache.NewLRUCache(1000, 30*24*time.Hour, "workflow")
-	} else if _, err := os.Stat("geotz_cache.json"); err == nil {
-		// Running from Alfred workflow directory
-		fmt.Fprintf(os.Stderr, "DEBUG: Using geotz_cache.json in current dir\n")
+	if _, err := os.Stat("geotz_cache.json"); err == nil {
+		// Alfred workflow - pre-seeded cache in same directory as binary
 		cacheAdapter = cache.NewLRUCache(1000, 30*24*time.Hour, ".")
 	} else {
-		// No pre-seeded cache found, use default
-		fmt.Fprintf(os.Stderr, "DEBUG: Using default cache\n")
+		// CLI - use default cache directory
 		cacheAdapter = cache.NewDefaultCache()
 	}
 	cacheKey := strings.ToLower(city)
