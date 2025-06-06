@@ -27,8 +27,8 @@ func TestPerformanceRegression(t *testing.T) {
 	}
 
 	// Ensure we have pre-seeded cache
-	if _, err := os.Stat("workflow/geotz_cache.json"); os.IsNotExist(err) {
-		t.Skip("Skipping performance test - workflow/geotz_cache.json not found. Run 'make preseed' first.")
+	if _, err := os.Stat("geotz_cache.json"); os.IsNotExist(err) {
+		t.Skip("Skipping performance test - geotz_cache.json not found. Run 'make preseed' first.")
 	}
 
 	t.Run("Pre-seeded cities meet cache hit performance SLA", func(t *testing.T) {
@@ -62,7 +62,7 @@ func TestPerformanceRegression(t *testing.T) {
 		uniqueCity := "TestCity" + strconv.FormatInt(time.Now().UnixNano(), 10)
 		
 		start := time.Now()
-		cmd := exec.Command("./bin/geotz", uniqueCity)
+		cmd := exec.Command("./bin/geotz", "--format=alfred", uniqueCity)
 		output, err := cmd.CombinedOutput()
 		duration := time.Since(start)
 		
@@ -82,7 +82,10 @@ func TestPerformanceRegression(t *testing.T) {
 	t.Run("Cache effectiveness ratio", func(t *testing.T) {
 		// Measure the performance difference between cache hit and cache miss
 		cacheHitTime := measureCityLookup(t, "london")    // Pre-seeded
-		cacheMissTime := measureNewCityLookup(t, "vienna") // First lookup
+		
+		// Use a guaranteed cache miss - invalid city that will fail but take time to geocode
+		uniqueCity := "InvalidCity" + strconv.FormatInt(time.Now().UnixNano(), 10)
+		cacheMissTime := measureInvalidCityLookup(t, uniqueCity) // Guaranteed cache miss
 		
 		if cacheMissTime <= cacheHitTime {
 			t.Errorf("Cache miss (%v) should be slower than cache hit (%v)", cacheMissTime, cacheHitTime)
@@ -135,7 +138,7 @@ func TestCacheWarmupPerformance(t *testing.T) {
 	t.Run("Cache pre-seeding completes in reasonable time", func(t *testing.T) {
 		start := time.Now()
 		
-		cmd := exec.Command("./preseed", "workflow")
+		cmd := exec.Command("./preseed")
 		output, err := cmd.CombinedOutput()
 		duration := time.Since(start)
 		
@@ -171,7 +174,7 @@ func TestCacheWarmupPerformance(t *testing.T) {
 func measureCityLookup(t *testing.T, city string) time.Duration {
 	start := time.Now()
 	
-	cmd := exec.Command("./bin/geotz", city)
+	cmd := exec.Command("./bin/geotz", "--format=alfred", city)
 	output, err := cmd.Output()
 	duration := time.Since(start)
 	
@@ -187,9 +190,17 @@ func measureCityLookup(t *testing.T, city string) time.Duration {
 	return duration
 }
 
-func measureNewCityLookup(t *testing.T, city string) time.Duration {
-	// Clear any existing cache for this city first
-	// This is a bit tricky since we can't easily manipulate the cache,
-	// so we use a city that's likely not cached
-	return measureCityLookup(t, city)
+func measureInvalidCityLookup(t *testing.T, city string) time.Duration {
+	start := time.Now()
+	
+	cmd := exec.Command("./bin/geotz", "--format=alfred", city)
+	output, err := cmd.CombinedOutput()
+	duration := time.Since(start)
+	
+	// Should fail (invalid city) but should take time to fail (proves geocoding attempted)
+	if err == nil {
+		t.Logf("Warning: Expected error for invalid city %s, but got output: %s", city, output)
+	}
+	
+	return duration
 }
