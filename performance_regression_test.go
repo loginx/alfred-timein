@@ -26,9 +26,11 @@ func TestPerformanceRegression(t *testing.T) {
 		t.Skip("Skipping performance test - bin/geotz not found. Run 'make build' first.")
 	}
 
-	// Ensure we have pre-seeded cache
-	if _, err := os.Stat("geotz_cache.json"); os.IsNotExist(err) {
-		t.Skip("Skipping performance test - geotz_cache.json not found. Run 'make preseed' first.")
+	// Regenerate pre-seeded cache to ensure clean state
+	t.Log("Regenerating pre-seeded cache for performance test...")
+	cmd := exec.Command("make", "preseed")
+	if output, err := cmd.CombinedOutput(); err != nil {
+		t.Fatalf("Failed to regenerate cache: %v, output: %s", err, output)
 	}
 
 	t.Run("Pre-seeded cities meet cache hit performance SLA", func(t *testing.T) {

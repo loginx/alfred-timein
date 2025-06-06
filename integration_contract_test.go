@@ -17,6 +17,15 @@ import (
 func TestActualCachePreSeedingIntegration(t *testing.T) {
 	// Setup: Clean environment
 	originalDir, _ := os.Getwd()
+	
+	// Regenerate pre-seeded cache to ensure clean state
+	t.Log("Regenerating pre-seeded cache for integration test...")
+	cmd := exec.Command("make", "preseed")
+	cmd.Dir = originalDir
+	if output, err := cmd.CombinedOutput(); err != nil {
+		t.Fatalf("Failed to regenerate cache: %v, output: %s", err, output)
+	}
+	
 	testDir := "/tmp/alfred-timein-integration-" + strconv.FormatInt(time.Now().UnixNano(), 10)
 	defer func() {
 		os.Chdir(originalDir)

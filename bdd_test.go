@@ -395,6 +395,13 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 }
 
 func TestBDD(t *testing.T) {
+	// Regenerate pre-seeded cache to ensure clean state for BDD tests
+	t.Log("Regenerating pre-seeded cache for BDD tests...")
+	cmd := exec.Command("make", "preseed")
+	if output, err := cmd.CombinedOutput(); err != nil {
+		t.Fatalf("Failed to regenerate cache: %v, output: %s", err, output)
+	}
+	
 	suite := godog.TestSuite{
 		ScenarioInitializer: InitializeScenario,
 		Options: &godog.Options{
