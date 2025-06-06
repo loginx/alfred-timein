@@ -1,0 +1,373 @@
+{
+  "max": 1000,
+  "cache": [
+    [
+      "paris",
+      {
+        "value": "Europe/Paris",
+        "created_at": "2025-06-05T21:51:03.743328-04:00",
+        "ttl": 31536000000000000
+      }
+    ],
+    [
+      "amsterdam",
+      {
+        "value": "Europe/Amsterdam",
+        "created_at": "2025-06-05T21:51:03.743329-04:00",
+        "ttl": 31536000000000000
+      }
+    ],
+    [
+      "copenhagen",
+      {
+        "value": "Europe/Copenhagen",
+        "created_at": "2025-06-05T21:51:03.743329-04:00",
+        "ttl": 31536000000000000
+      }
+    ],
+    [
+      "santiago",
+      {
+        "value": "America/Santiago",
+        "created_at": "2025-06-05T21:51:03.743329-04:00",
+        "ttl": 31536000000000000
+      }
+    ],
+    [
+      "istanbul",
+      {
+        "value": "Europe/Istanbul",
+        "created_at": "2025-06-05T21:51:03.743329-04:00",
+        "ttl": 31536000000000000
+      }
+    ],
+    [
+      "london",
+      {
+        "value": "Europe/London",
+        "created_at": "2025-06-05T21:51:03.743329-04:00",
+        "ttl": 31536000000000000
+      }
+    ],
+    [
+      "buenos aires",
+      {
+        "value": "America/Argentina/Buenos_Aires",
+        "created_at": "2025-06-05T21:51:03.743329-04:00",
+        "ttl": 31536000000000000
+      }
+    ],
+    [
+      "quito",
+      {
+        "value": "America/Guayaquil",
+        "created_at": "2025-06-05T21:51:03.74333-04:00",
+        "ttl": 31536000000000000
+      }
+    ],
+    [
+      "montevideo",
+      {
+        "value": "America/Montevideo",
+        "created_at": "2025-06-05T21:51:03.74333-04:00",
+        "ttl": 31536000000000000
+      }
+    ],
+    [
+      "brussels",
+      {
+        "value": "Europe/Brussels",
+        "created_at": "2025-06-05T21:51:03.74333-04:00",
+        "ttl": 31536000000000000
+      }
+    ],
+    [
+      "stockholm",
+      {
+        "value": "Europe/Stockholm",
+        "created_at": "2025-06-05T21:51:03.74333-04:00",
+        "ttl": 31536000000000000
+      }
+    ],
+    [
+      "warsaw",
+      {
+        "value": "Europe/Warsaw",
+        "created_at": "2025-06-05T21:51:03.74333-04:00",
+        "ttl": 31536000000000000
+      }
+    ],
+    [
+      "dublin",
+      {
+        "value": "Europe/Dublin",
+        "created_at": "2025-06-05T21:51:03.743331-04:00",
+        "ttl": 31536000000000000
+      }
+    ],
+    [
+      "beijing",
+      {
+        "value": "Asia/Shanghai",
+        "created_at": "2025-06-05T21:51:03.743331-04:00",
+        "ttl": 31536000000000000
+      }
+    ],
+    [
+      "seoul",
+      {
+        "value": "Asia/Seoul",
+        "created_at": "2025-06-05T21:51:03.743331-04:00",
+        "ttl": 31536000000000000
+      }
+    ],
+    [
+      "cairo",
+      {
+        "value": "Africa/Cairo",
+        "created_at": "2025-06-05T21:51:03.743331-04:00",
+        "ttl": 31536000000000000
+      }
+    ],
+    [
+      "bogotá",
+      {
+        "value": "America/Bogota",
+        "created_at": "2025-06-05T21:51:03.743332-04:00",
+        "ttl": 31536000000000000
+      }
+    ],
+    [
+      "berlin",
+      {
+        "value": "Europe/Berlin",
+        "created_at": "2025-06-05T21:51:03.743332-04:00",
+        "ttl": 31536000000000000
+      }
+    ],
+    [
+      "prague",
+      {
+        "value": "Europe/Prague",
+        "created_at": "2025-06-05T21:51:03.743332-04:00",
+        "ttl": 31536000000000000
+      }
+    ],
+    [
+      "tokyo",
+      {
+        "value": "Asia/Tokyo",
+        "created_at": "2025-06-05T21:51:03.743332-04:00",
+        "ttl": 31536000000000000
+      }
+    ],
+    [
+      "mumbai",
+      {
+        "value": "Asia/Kolkata",
+        "created_at": "2025-06-05T21:51:03.743332-04:00",
+        "ttl": 31536000000000000
+      }
+    ],
+    [
+      "caracas",
+      {
+        "value": "America/Caracas",
+        "created_at": "2025-06-05T21:51:03.743332-04:00",
+        "ttl": 31536000000000000
+      }
+    ],
+    [
+      "la paz",
+      {
+        "value": "America/La_Paz",
+        "created_at": "2025-06-05T21:51:03.743332-04:00",
+        "ttl": 31536000000000000
+      }
+    ],
+    [
+      "riyadh",
+      {
+        "value": "Asia/Riyadh",
+        "created_at": "2025-06-05T21:51:03.743333-04:00",
+        "ttl": 31536000000000000
+      }
+    ],
+    [
+      "madrid",
+      {
+        "value": "Europe/Madrid",
+        "created_at": "2025-06-05T21:51:03.743333-04:00",
+        "ttl": 31536000000000000
+      }
+    ],
+    [
+      "rome",
+      {
+        "value": "Europe/Rome",
+        "created_at": "2025-06-05T21:51:03.743333-04:00",
+        "ttl": 31536000000000000
+      }
+    ],
+    [
+      "washington",
+      {
+        "value": "America/New_York",
+        "created_at": "2025-06-05T21:51:03.743333-04:00",
+        "ttl": 31536000000000000
+      }
+    ],
+    [
+      "singapore",
+      {
+        "value": "Asia/Singapore",
+        "created_at": "2025-06-05T21:51:03.743333-04:00",
+        "ttl": 31536000000000000
+      }
+    ],
+    [
+      "johannesburg",
+      {
+        "value": "Africa/Johannesburg",
+        "created_at": "2025-06-05T21:51:03.743333-04:00",
+        "ttl": 31536000000000000
+      }
+    ],
+    [
+      "helsinki",
+      {
+        "value": "Europe/Helsinki",
+        "created_at": "2025-06-05T21:51:03.743335-04:00",
+        "ttl": 31536000000000000
+      }
+    ],
+    [
+      "ottawa",
+      {
+        "value": "America/Toronto",
+        "created_at": "2025-06-05T21:51:03.743335-04:00",
+        "ttl": 31536000000000000
+      }
+    ],
+    [
+      "sydney",
+      {
+        "value": "Australia/Sydney",
+        "created_at": "2025-06-05T21:51:03.743335-04:00",
+        "ttl": 31536000000000000
+      }
+    ],
+    [
+      "auckland",
+      {
+        "value": "Pacific/Auckland",
+        "created_at": "2025-06-05T21:51:03.743335-04:00",
+        "ttl": 31536000000000000
+      }
+    ],
+    [
+      "lagos",
+      {
+        "value": "Africa/Lagos",
+        "created_at": "2025-06-05T21:51:03.743335-04:00",
+        "ttl": 31536000000000000
+      }
+    ],
+    [
+      "lima",
+      {
+        "value": "America/Lima",
+        "created_at": "2025-06-05T21:51:03.743335-04:00",
+        "ttl": 31536000000000000
+      }
+    ],
+    [
+      "asunción",
+      {
+        "value": "America/Asuncion",
+        "created_at": "2025-06-05T21:51:03.743335-04:00",
+        "ttl": 31536000000000000
+      }
+    ],
+    [
+      "vienna",
+      {
+        "value": "Europe/Vienna",
+        "created_at": "2025-06-05T21:51:03.743335-04:00",
+        "ttl": 31536000000000000
+      }
+    ],
+    [
+      "oslo",
+      {
+        "value": "Europe/Oslo",
+        "created_at": "2025-06-05T21:51:03.743335-04:00",
+        "ttl": 31536000000000000
+      }
+    ],
+    [
+      "budapest",
+      {
+        "value": "Europe/Budapest",
+        "created_at": "2025-06-05T21:51:03.743336-04:00",
+        "ttl": 31536000000000000
+      }
+    ],
+    [
+      "lisbon",
+      {
+        "value": "Europe/Lisbon",
+        "created_at": "2025-06-05T21:51:03.743336-04:00",
+        "ttl": 31536000000000000
+      }
+    ],
+    [
+      "bangkok",
+      {
+        "value": "Asia/Bangkok",
+        "created_at": "2025-06-05T21:51:03.743336-04:00",
+        "ttl": 31536000000000000
+      }
+    ],
+    [
+      "são paulo",
+      {
+        "value": "America/Sao_Paulo",
+        "created_at": "2025-06-05T21:51:03.743336-04:00",
+        "ttl": 31536000000000000
+      }
+    ],
+    [
+      "tel aviv",
+      {
+        "value": "Asia/Jerusalem",
+        "created_at": "2025-06-05T21:51:03.743336-04:00",
+        "ttl": 31536000000000000
+      }
+    ],
+    [
+      "kiev",
+      {
+        "value": "Europe/Kyiv",
+        "created_at": "2025-06-05T21:51:03.743336-04:00",
+        "ttl": 31536000000000000
+      }
+    ],
+    [
+      "mexico city",
+      {
+        "value": "America/Mexico_City",
+        "created_at": "2025-06-05T21:51:03.743336-04:00",
+        "ttl": 31536000000000000
+      }
+    ],
+    [
+      "moscow",
+      {
+        "value": "Europe/Moscow",
+        "created_at": "2025-06-05T21:51:03.743336-04:00",
+        "ttl": 31536000000000000
+      }
+    ]
+  ]
+}
