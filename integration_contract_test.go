@@ -220,6 +220,12 @@ func verifyPreSeededEntries(t *testing.T, cacheFile string) {
 	}
 
 	cacheContent := string(content)
+	t.Logf("Cache file size: %d bytes", len(content))
+	preview := cacheContent
+	if len(preview) > 200 {
+		preview = preview[:200] + "..."
+	}
+	t.Logf("Cache content preview: %s", preview)
 	
 	// Verify cache contains both city names and coordinate keys
 	expectedEntries := map[string]string{

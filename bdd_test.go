@@ -79,8 +79,8 @@ func (ctx *BDDContext) reset() {
 }
 
 func (ctx *BDDContext) initializeServices() error {
-	// Create cache
-	ctx.cacheService = cache.NewDefaultCache()
+	// Create cache in current directory to match CLI behavior
+	ctx.cacheService = cache.NewLRUCache(1000, 30*24*time.Hour, ".")
 
 	// Create adapters
 	geocoderAdapter := geocoder.NewOpenStreetMapGeocoder()
