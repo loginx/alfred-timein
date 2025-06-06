@@ -32,9 +32,10 @@ preseed:
 	rm .preseed
 
 alfredworkflow: build preseed
+	rm -f TimeIn.alfredworkflow
 	cp $(BIN_DIR)/geotz $(BIN_DIR)/timein workflow/
 	cp info.plist icon.png geotz_cache.json workflow/
-	cd workflow && zip -r ../TimeIn.alfredworkflow . -x '*.DS_Store'
+	cd workflow && zip -r ../TimeIn.alfredworkflow geotz timein info.plist icon.png geotz_cache.json screenshot.png
 	rm workflow/geotz workflow/timein workflow/info.plist workflow/icon.png workflow/geotz_cache.json
 
 clean:
