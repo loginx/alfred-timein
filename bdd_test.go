@@ -721,14 +721,11 @@ func (ctx *BDDContext) theCacheHasBeenPreseededWithCapitalCities() error {
 	// Set up a test cache with pre-seeded capitals
 	ctx.cache = cache.NewLRUCache(200, 24*time.Hour, ctx.testDir)
 	
-	// Pre-seed with test capital data
+	// Pre-seed with test capital data (city names only)
 	entries := map[string]string{
-		"london":                 "Europe/London",
-		"paris":                  "Europe/Paris", 
-		"tokyo":                  "Asia/Tokyo",
-		"51.507400,-0.127800":    "Europe/London",  // London coordinates
-		"48.856600,2.352200":     "Europe/Paris",   // Paris coordinates
-		"35.676200,139.650300":   "Asia/Tokyo",     // Tokyo coordinates
+		"london": "Europe/London",
+		"paris":  "Europe/Paris", 
+		"tokyo":  "Asia/Tokyo",
 	}
 	ctx.cache.PreSeed(entries)
 	return nil

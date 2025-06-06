@@ -20,14 +20,11 @@ func TestCachePreSeedBehavior(t *testing.T) {
 	// Create test cache
 	c := cache.NewLRUCache(200, 24*time.Hour, testDir)
 
-	// Pre-seed with test capital data
+	// Pre-seed with test capital data (city names only)
 	entries := map[string]string{
-		"london":                 "Europe/London",
-		"paris":                  "Europe/Paris",
-		"tokyo":                  "Asia/Tokyo",
-		"51.507400,-0.127800":    "Europe/London",  // London coordinates
-		"48.856600,2.352200":     "Europe/Paris",   // Paris coordinates
-		"35.676200,139.650300":   "Asia/Tokyo",     // Tokyo coordinates
+		"london": "Europe/London",
+		"paris":  "Europe/Paris",
+		"tokyo":  "Asia/Tokyo",
 	}
 
 	// Pre-seed the cache

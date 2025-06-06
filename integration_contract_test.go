@@ -220,16 +220,5 @@ func verifyPreSeededEntries(t *testing.T, cacheFile string) {
 		}
 	}
 	
-	// Verify cache has coordinate entries too
-	coordinateKeys := []string{
-		"51.507400,-0.127800",  // London
-		"48.856600,2.352200",   // Paris  
-		"35.676200,139.650300", // Tokyo
-	}
-	
-	for _, coord := range coordinateKeys {
-		if !strings.Contains(cacheContent, coord) {
-			t.Errorf("Cache missing coordinate key: %s", coord)
-		}
-	}
+	// No longer checking for coordinate keys since we removed them
 }
