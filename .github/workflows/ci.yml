@@ -124,13 +124,13 @@ jobs:
             COMMITS=$(git log ${PREVIOUS_TAG}..${CURRENT_TAG} --pretty=format:"- %s" --reverse)
           fi
           
-          # Categorize commits
-          FEATURES=$(echo "$COMMITS" | grep "^- feat:" | sed 's/^- feat: /- /' || true)
-          FIXES=$(echo "$COMMITS" | grep "^- fix:" | sed 's/^- fix: /- /' || true)
-          REFACTOR=$(echo "$COMMITS" | grep "^- refactor:" | sed 's/^- refactor: /- /' || true)
-          CHORES=$(echo "$COMMITS" | grep "^- chore:" | sed 's/^- chore: /- /' || true)
-          CI=$(echo "$COMMITS" | grep "^- ci:" | sed 's/^- ci: /- /' || true)
-          DOCS=$(echo "$COMMITS" | grep "^- docs:" | sed 's/^- docs: /- /' || true)
+          # Categorize commits (handle scoped commits like fix(ci): or chore(deps):)
+          FEATURES=$(echo "$COMMITS" | grep "^- feat" | sed 's/^- feat[^:]*: /- /' || true)
+          FIXES=$(echo "$COMMITS" | grep "^- fix" | sed 's/^- fix[^:]*: /- /' || true)
+          REFACTOR=$(echo "$COMMITS" | grep "^- refactor" | sed 's/^- refactor[^:]*: /- /' || true)
+          CHORES=$(echo "$COMMITS" | grep "^- chore" | sed 's/^- chore[^:]*: /- /' || true)
+          CI=$(echo "$COMMITS" | grep "^- ci" | sed 's/^- ci[^:]*: /- /' || true)
+          DOCS=$(echo "$COMMITS" | grep "^- docs" | sed 's/^- docs[^:]*: /- /' || true)
           
           CHANGELOG=""
           if [ -n "$FEATURES" ]; then
