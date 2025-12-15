@@ -114,46 +114,20 @@ jobs:
       - name: Generate changelog (for stable releases)
         if: startsWith(github.ref, 'refs/tags/v')
         id: changelog
+        uses: orhun/git-cliff-action@v4
+        with:
+          config: cliff.toml
+          args: --latest --strip header
+        env:
+          OUTPUT: CHANGES.md
+          GITHUB_REPO: ${{ github.repository }}
+
+      - name: Read changelog
+        if: startsWith(github.ref, 'refs/tags/v')
+        id: read_changelog
         run: |
-          CURRENT_TAG=${GITHUB_REF#refs/tags/}
-          PREVIOUS_TAG=$(git describe --tags --abbrev=0 "${CURRENT_TAG}^" 2>/dev/null || echo "")
-          
-          if [ -z "$PREVIOUS_TAG" ]; then
-            COMMITS=$(git log --pretty=format:"- %s" --reverse)
-          else
-            COMMITS=$(git log ${PREVIOUS_TAG}..${CURRENT_TAG} --pretty=format:"- %s" --reverse)
-          fi
-          
-          # Categorize commits (handle scoped commits like fix(ci): or chore(deps):)
-          FEATURES=$(echo "$COMMITS" | grep "^- feat" | sed 's/^- feat[^:]*: /- /' || true)
-          FIXES=$(echo "$COMMITS" | grep "^- fix" | sed 's/^- fix[^:]*: /- /' || true)
-          REFACTOR=$(echo "$COMMITS" | grep "^- refactor" | sed 's/^- refactor[^:]*: /- /' || true)
-          CHORES=$(echo "$COMMITS" | grep "^- chore" | sed 's/^- chore[^:]*: /- /' || true)
-          CI=$(echo "$COMMITS" | grep "^- ci" | sed 's/^- ci[^:]*: /- /' || true)
-          DOCS=$(echo "$COMMITS" | grep "^- docs" | sed 's/^- docs[^:]*: /- /' || true)
-          
-          CHANGELOG=""
-          if [ -n "$FEATURES" ]; then
-            CHANGELOG="${CHANGELOG}### Features\n${FEATURES}\n\n"
-          fi
-          if [ -n "$FIXES" ]; then
-            CHANGELOG="${CHANGELOG}### Bug Fixes\n${FIXES}\n\n"
-          fi
-          if [ -n "$REFACTOR" ]; then
-            CHANGELOG="${CHANGELOG}### Code Refactoring\n${REFACTOR}\n\n"
-          fi
-          if [ -n "$DOCS" ]; then
-            CHANGELOG="${CHANGELOG}### Documentation\n${DOCS}\n\n"
-          fi
-          if [ -n "$CI" ]; then
-            CHANGELOG="${CHANGELOG}### CI/CD\n${CI}\n\n"
-          fi
-          if [ -n "$CHORES" ]; then
-            CHANGELOG="${CHANGELOG}### Maintenance\n${CHORES}\n\n"
-          fi
-          
           echo "changelog<<EOF" >> "$GITHUB_OUTPUT"
-          echo -e "$CHANGELOG" >> "$GITHUB_OUTPUT"
+          cat CHANGES.md >> "$GITHUB_OUTPUT"
           echo "EOF" >> "$GITHUB_OUTPUT"
       
       - name: Update plist version
@@ -176,8 +150,8 @@ jobs:
             A reliable Alfred workflow for timezone lookups and time conversion.
             
             ## What's Changed
-            
-            ${{ steps.changelog.outputs.changelog }}
+
+            ${{ steps.read_changelog.outputs.changelog }}
             
             ## Installation
             
