@@ -5,6 +5,9 @@ import (
 )
 
 func TestOpenStreetMapGeocoder_ShouldReturnLocationForKnownCity(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping network-dependent test in short mode")
+	}
 	// Given a geocoder and a well-known city
 	geocoder := NewOpenStreetMapGeocoder()
 	
@@ -29,6 +32,9 @@ func TestOpenStreetMapGeocoder_ShouldReturnLocationForKnownCity(t *testing.T) {
 }
 
 func TestOpenStreetMapGeocoder_ShouldFailGracefullyForNonexistentPlace(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping network-dependent test in short mode")
+	}
 	// Given a geocoder and a nonsense query
 	geocoder := NewOpenStreetMapGeocoder()
 	
@@ -47,6 +53,9 @@ func TestOpenStreetMapGeocoder_ShouldFailGracefullyForNonexistentPlace(t *testin
 }
 
 func TestOpenStreetMapGeocoder_ShouldHandleEmptyQuery(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping network-dependent test in short mode")
+	}
 	// Given a geocoder and an empty query
 	geocoder := NewOpenStreetMapGeocoder()
 	
@@ -65,6 +74,9 @@ func TestOpenStreetMapGeocoder_ShouldHandleEmptyQuery(t *testing.T) {
 }
 
 func TestOpenStreetMapGeocoder_ShouldHandleLandmarks(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping network-dependent test in short mode")
+	}
 	// Given a geocoder and a famous landmark
 	geocoder := NewOpenStreetMapGeocoder()
 	

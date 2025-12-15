@@ -26,7 +26,7 @@ jobs:
       - name: Run BDD tests
         run: go test -tags=bdd -run TestBDD -timeout 60s
       - name: Run tests with coverage
-        run: go test -coverprofile=coverage.out ./...
+        run: go test -coverprofile=coverage.out -short ./internal/...
       - name: Upload coverage
         uses: codecov/codecov-action@v4
         with:
