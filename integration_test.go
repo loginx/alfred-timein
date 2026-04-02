@@ -39,7 +39,7 @@ func TestUserCanGetCurrentTimeInKnownCity(t *testing.T) {
 	}
 	
 	// The time should be in human-readable format and current
-	if !strings.Contains(timeString, "2025") {
+	if !strings.Contains(timeString, time.Now().Format("2006")) {
 		t.Errorf("Expected time to contain current year, got '%s'", timeString)
 	}
 	
@@ -198,7 +198,7 @@ func TestPipelineWorkflowWorksEndToEnd(t *testing.T) {
 	result := strings.TrimSpace(string(output))
 	
 	// Should get current time in Berlin timezone
-	if !strings.Contains(result, "2025") {
+	if !strings.Contains(result, time.Now().Format("2006")) {
 		t.Errorf("Expected current year in result, got '%s'", result)
 	}
 	

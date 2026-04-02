@@ -3,6 +3,7 @@ package presenter
 import (
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/loginx/alfred-timein/internal/domain"
 )
@@ -47,7 +48,7 @@ func TestPlainFormatter_ShouldFormatTimeInfoAsHumanReadable(t *testing.T) {
 	}
 	
 	// Should contain readable date format
-	if !strings.Contains(result, "2025") {
+	if !strings.Contains(result, time.Now().Format("2006")) {
 		t.Error("Expected output to contain current year")
 	}
 	
