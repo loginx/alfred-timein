@@ -215,7 +215,7 @@ func (ctx *BDDContext) iShouldSeeAHumanReadableTimeFormat() error {
 	}
 	
 	// Check for basic time format elements
-	if !strings.Contains(ctx.outputTime, "2025") {
+	if !strings.Contains(ctx.outputTime, time.Now().Format("2006")) {
 		return fmt.Errorf("expected current year in time output: %s", ctx.outputTime)
 	}
 	
@@ -312,7 +312,7 @@ func (ctx *BDDContext) theExitCodeShouldBe(expectedCode int) error {
 }
 
 func (ctx *BDDContext) theOutputShouldContainTheCurrentDateAndTime() error {
-	if !strings.Contains(ctx.commandOutput, "2025") {
+	if !strings.Contains(ctx.commandOutput, time.Now().Format("2006")) {
 		return fmt.Errorf("expected current year in output")
 	}
 	return nil
