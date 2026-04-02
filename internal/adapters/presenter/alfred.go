@@ -65,6 +65,7 @@ func (f *AlfredFormatter) FormatTimeInfo(tz *domain.Timezone) ([]byte, error) {
 
 	out := alfred.NewScriptFilterOutput()
 	out.Cache = &alfred.CacheConfig{Seconds: 60}
+	out.SkipKnowledge = true
 
 	item := alfred.Item{
 		Title:    title,
