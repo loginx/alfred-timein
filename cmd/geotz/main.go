@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -33,9 +34,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Fast path: Check cache first before initializing expensive dependencies
-	// Always use geotz_cache.json in current directory
-	cacheAdapter := cache.NewLRUCache(1000, 30*24*time.Hour, ".")
+	// Use Alfred's persistent data dir when available, fall back to CWD for standalone CLI
+	cacheDir := resolveCacheDir()
+	if cacheDir != "." {
+		seedFromWorkflowDir(cacheDir)
+	}
+	cacheAdapter := cache.NewLRUCache(1000, 30*24*time.Hour, cacheDir)
 	cacheKey := strings.ToLower(city)
 	if tz, ok := cacheAdapter.Get(cacheKey); ok {
 		// Cache hit - skip expensive validation, just format and output
@@ -86,6 +90,31 @@ func main() {
 	}
 
 	os.Stdout.Write(output)
+}
+
+// resolveCacheDir returns the directory for runtime cache storage.
+// Inside Alfred: uses alfred_workflow_data (persistent across updates).
+// Outside Alfred: falls back to current directory.
+func resolveCacheDir() string {
+	if dir := os.Getenv("alfred_workflow_data"); dir != "" {
+		return dir
+	}
+	return "."
+}
+
+// seedFromWorkflowDir copies the shipped pre-seeded cache to the data directory
+// on first run. No-op if the data dir cache already exists.
+func seedFromWorkflowDir(dataDir string) {
+	dest := filepath.Join(dataDir, "geotz_cache.json")
+	if _, err := os.Stat(dest); err == nil {
+		return
+	}
+	src, err := os.ReadFile(filepath.Join(".", "geotz_cache.json"))
+	if err != nil {
+		return
+	}
+	os.MkdirAll(dataDir, 0755)
+	os.WriteFile(dest, src, 0644)
 }
 
 func outputError(msg string, format string) {

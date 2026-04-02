@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -117,5 +118,70 @@ func TestGeotz_InvalidCity_Plain(t *testing.T) {
 	result := string(out)
 	if !strings.Contains(strings.ToLower(result), "could not geocode") {
 		t.Errorf("expected error message in stderr, got: %v", result)
+	}
+}
+
+func TestResolveCacheDir_WithEnvVar(t *testing.T) {
+	t.Setenv("alfred_workflow_data", "/tmp/test-workflow-data")
+	if dir := resolveCacheDir(); dir != "/tmp/test-workflow-data" {
+		t.Errorf("expected env var path, got %s", dir)
+	}
+}
+
+func TestResolveCacheDir_WithoutEnvVar(t *testing.T) {
+	t.Setenv("alfred_workflow_data", "")
+	if dir := resolveCacheDir(); dir != "." {
+		t.Errorf("expected '.', got %s", dir)
+	}
+}
+
+func TestSeedFromWorkflowDir_CopiesWhenMissing(t *testing.T) {
+	workflowDir := t.TempDir()
+	dataDir := t.TempDir()
+
+	os.WriteFile(filepath.Join(workflowDir, "geotz_cache.json"), []byte(`{"max":1000,"cache":[]}`), 0644)
+
+	oldWd, _ := os.Getwd()
+	os.Chdir(workflowDir)
+	defer os.Chdir(oldWd)
+
+	seedFromWorkflowDir(dataDir)
+
+	if _, err := os.Stat(filepath.Join(dataDir, "geotz_cache.json")); os.IsNotExist(err) {
+		t.Error("expected cache file to be copied to data dir")
+	}
+}
+
+func TestSeedFromWorkflowDir_SkipsWhenExists(t *testing.T) {
+	workflowDir := t.TempDir()
+	dataDir := t.TempDir()
+
+	os.WriteFile(filepath.Join(workflowDir, "geotz_cache.json"), []byte(`{"max":1000,"cache":[["src",{}]]}`), 0644)
+	os.WriteFile(filepath.Join(dataDir, "geotz_cache.json"), []byte(`{"max":1000,"cache":[["dest",{}]]}`), 0644)
+
+	oldWd, _ := os.Getwd()
+	os.Chdir(workflowDir)
+	defer os.Chdir(oldWd)
+
+	seedFromWorkflowDir(dataDir)
+
+	data, _ := os.ReadFile(filepath.Join(dataDir, "geotz_cache.json"))
+	if !strings.Contains(string(data), "dest") {
+		t.Error("expected existing data-dir cache to be preserved")
+	}
+}
+
+func TestSeedFromWorkflowDir_NoSourceCache(t *testing.T) {
+	workflowDir := t.TempDir() // empty, no cache file
+	dataDir := t.TempDir()
+
+	oldWd, _ := os.Getwd()
+	os.Chdir(workflowDir)
+	defer os.Chdir(oldWd)
+
+	seedFromWorkflowDir(dataDir)
+
+	if _, err := os.Stat(filepath.Join(dataDir, "geotz_cache.json")); !os.IsNotExist(err) {
+		t.Error("expected no cache file in data dir when source is missing")
 	}
 }
