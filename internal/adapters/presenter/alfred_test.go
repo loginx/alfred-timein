@@ -89,6 +89,11 @@ func TestAlfredFormatter_ShouldFormatTimeInfoWithAbbreviation(t *testing.T) {
 	if cache["seconds"].(float64) != 60 {
 		t.Errorf("Expected cache seconds to be 60, got %v", cache["seconds"])
 	}
+
+	// Should preserve result ordering
+	if result["skipknowledge"] != true {
+		t.Errorf("Expected skipknowledge to be true, got %v", result["skipknowledge"])
+	}
 }
 
 func TestAlfredFormatter_ShouldFormatErrorsAsInvalidItems(t *testing.T) {
