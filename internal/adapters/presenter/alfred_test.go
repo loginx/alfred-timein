@@ -8,83 +8,74 @@ import (
 )
 
 func TestAlfredFormatter_ShouldFormatValidTimezoneInfoWithCache(t *testing.T) {
-	// Given an Alfred formatter and a timezone
 	formatter := NewAlfredFormatter()
 	timezone, _ := domain.NewTimezone("Europe/Paris")
-	
-	// When formatting timezone info with cached flag
+
 	output, err := formatter.FormatTimezoneInfo(timezone, "Paris", true)
-	
-	// Then it should produce valid Alfred JSON
 	if err != nil {
 		t.Fatalf("Expected successful formatting, got error: %v", err)
 	}
-	
+
 	var result map[string]interface{}
 	if err := json.Unmarshal(output, &result); err != nil {
 		t.Fatalf("Expected valid JSON, got error: %v", err)
 	}
-	
-	// And it should contain the expected structure
+
 	items := result["items"].([]interface{})
 	if len(items) != 1 {
 		t.Fatalf("Expected 1 item, got %d", len(items))
 	}
-	
+
 	item := items[0].(map[string]interface{})
-	
-	// Title should be the timezone
+
 	if item["title"] != "Europe/Paris" {
 		t.Errorf("Expected title 'Europe/Paris', got '%v'", item["title"])
 	}
-	
-	// Subtitle should indicate it's cached
+
 	subtitle := item["subtitle"].(string)
 	if !contains(subtitle, "Paris") || !contains(subtitle, "cached") {
 		t.Errorf("Expected subtitle to contain 'Paris' and 'cached', got '%s'", subtitle)
 	}
-	
-	// Should have cache configuration
+
 	cache := result["cache"].(map[string]interface{})
-	if cache["seconds"].(float64) != 604800 { // 7 days
+	if cache["seconds"].(float64) != 604800 {
 		t.Errorf("Expected cache seconds to be 604800, got %v", cache["seconds"])
+	}
+
+	// Should have workflow icon
+	icon := item["icon"].(map[string]interface{})
+	if icon["path"] != "icon.png" {
+		t.Errorf("Expected icon path 'icon.png', got '%v'", icon["path"])
 	}
 }
 
 func TestAlfredFormatter_ShouldFormatTimeInfoWithAbbreviation(t *testing.T) {
-	// Given an Alfred formatter and a timezone
 	formatter := NewAlfredFormatter()
 	timezone, _ := domain.NewTimezone("America/New_York")
-	
-	// When formatting time info
+
 	output, err := formatter.FormatTimeInfo(timezone)
-	
-	// Then it should produce valid Alfred JSON with time
 	if err != nil {
 		t.Fatalf("Expected successful formatting, got error: %v", err)
 	}
-	
+
 	var result map[string]interface{}
 	if err := json.Unmarshal(output, &result); err != nil {
 		t.Fatalf("Expected valid JSON, got error: %v", err)
 	}
-	
+
 	items := result["items"].([]interface{})
 	item := items[0].(map[string]interface{})
-	
-	// Title should contain timezone and formatted time
+
 	title := item["title"].(string)
 	if !contains(title, "America/New_York") {
 		t.Errorf("Expected title to contain timezone, got '%s'", title)
 	}
-	
-	// Subtitle should contain city and timezone abbreviation
+
 	subtitle := item["subtitle"].(string)
 	if !contains(subtitle, "New York") {
 		t.Errorf("Expected subtitle to contain 'New York', got '%s'", subtitle)
 	}
-	
-	// Should have shorter cache (60 seconds for time)
+
 	cache := result["cache"].(map[string]interface{})
 	if cache["seconds"].(float64) != 60 {
 		t.Errorf("Expected cache seconds to be 60, got %v", cache["seconds"])
@@ -94,41 +85,70 @@ func TestAlfredFormatter_ShouldFormatTimeInfoWithAbbreviation(t *testing.T) {
 	if result["skipknowledge"] != true {
 		t.Errorf("Expected skipknowledge to be true, got %v", result["skipknowledge"])
 	}
+
+	// Should have workflow icon
+	icon := item["icon"].(map[string]interface{})
+	if icon["path"] != "icon.png" {
+		t.Errorf("Expected icon path 'icon.png', got '%v'", icon["path"])
+	}
+
+	// Should have text for CMD+C and CMD+L
+	text := item["text"].(map[string]interface{})
+	if text["copy"] != title {
+		t.Errorf("Expected text.copy to match title")
+	}
+	if text["largetype"] != title {
+		t.Errorf("Expected text.largetype to match title")
+	}
+
+	// Should have modifier keys
+	mods := item["mods"].(map[string]interface{})
+	cmdMod := mods["cmd"].(map[string]interface{})
+	if cmdMod["arg"] != "America/New_York" {
+		t.Errorf("Expected cmd mod arg to be timezone, got '%v'", cmdMod["arg"])
+	}
+	altMod := mods["alt"].(map[string]interface{})
+	altArg := altMod["arg"].(string)
+	if !contains(altArg, "T") || !contains(altArg, "-") {
+		t.Errorf("Expected alt mod arg to be ISO 8601, got '%s'", altArg)
+	}
+
+	// Should have Universal Action
+	if item["action"] == nil {
+		t.Error("Expected action field to be set")
+	}
 }
 
 func TestAlfredFormatter_ShouldFormatErrorsAsInvalidItems(t *testing.T) {
-	// Given an Alfred formatter and an error message
 	formatter := NewAlfredFormatter()
-	
-	// When formatting an error
+
 	output, err := formatter.FormatError("Something went wrong")
-	
-	// Then it should produce valid Alfred JSON
 	if err != nil {
 		t.Fatalf("Expected successful error formatting, got error: %v", err)
 	}
-	
+
 	var result map[string]interface{}
 	if err := json.Unmarshal(output, &result); err != nil {
 		t.Fatalf("Expected valid JSON, got error: %v", err)
 	}
-	
+
 	items := result["items"].([]interface{})
 	item := items[0].(map[string]interface{})
-	
-	// Should be marked as an error
+
 	if item["title"] != "Error" {
 		t.Errorf("Expected title 'Error', got '%v'", item["title"])
 	}
-	
-	// Should contain the error message
 	if item["subtitle"] != "Something went wrong" {
 		t.Errorf("Expected subtitle 'Something went wrong', got '%v'", item["subtitle"])
 	}
-	
-	// Should be marked as invalid (not actionable)
 	if item["valid"] != false {
 		t.Errorf("Expected valid to be false for errors, got %v", item["valid"])
+	}
+
+	// Should have system error icon
+	icon := item["icon"].(map[string]interface{})
+	if !contains(icon["path"].(string), "AlertStopIcon") {
+		t.Errorf("Expected error icon, got '%v'", icon["path"])
 	}
 }
 

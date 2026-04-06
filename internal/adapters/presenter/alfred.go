@@ -9,7 +9,11 @@ import (
 	"github.com/tkuchiki/go-timezone"
 )
 
-const alfredCacheSeconds = 604800 // 7 days
+const (
+	alfredCacheSeconds = 604800 // 7 days
+	workflowIcon       = "icon.png"
+	errorIcon          = "/System/Library/CoreServices/CoreTypes.bundle/Contents/Resources/AlertStopIcon.icns"
+)
 
 // AlfredFormatter formats output for Alfred Script Filter
 type AlfredFormatter struct{}
@@ -33,6 +37,7 @@ func (f *AlfredFormatter) FormatTimezoneInfo(timezone *domain.Timezone, city str
 		Title:    timezone.String(),
 		Subtitle: subtitle,
 		Arg:      timezone.String(),
+		Icon:     &alfred.Icon{Path: workflowIcon},
 		Variables: map[string]interface{}{
 			"city": city,
 		},
@@ -62,6 +67,7 @@ func (f *AlfredFormatter) FormatTimeInfo(tz *domain.Timezone) ([]byte, error) {
 
 	title := fmt.Sprintf("%s - %s", tz.String(), now.Format("Mon, Jan 2, 3:04 PM"))
 	subtitle := fmt.Sprintf("Current time in %s (%s)", city, abbr)
+	iso8601 := now.Format(time.RFC3339)
 
 	out := alfred.NewScriptFilterOutput()
 	out.Cache = &alfred.CacheConfig{Seconds: 60}
@@ -71,6 +77,13 @@ func (f *AlfredFormatter) FormatTimeInfo(tz *domain.Timezone) ([]byte, error) {
 		Title:    title,
 		Subtitle: subtitle,
 		Arg:      title,
+		Icon:     &alfred.Icon{Path: workflowIcon},
+		Text:     &alfred.Text{Copy: title, LargeType: title},
+		Action:   title,
+		Mods: map[string]alfred.Mod{
+			"cmd": {Subtitle: "Copy timezone", Arg: tz.String()},
+			"alt": {Subtitle: "Copy ISO 8601 time", Arg: iso8601},
+		},
 		Variables: map[string]interface{}{
 			"timezone": tz.String(),
 		},
@@ -87,6 +100,7 @@ func (f *AlfredFormatter) FormatError(message string) ([]byte, error) {
 		Title:    "Error",
 		Subtitle: message,
 		Valid:    boolPtr(false),
+		Icon:     &alfred.Icon{Path: errorIcon},
 	}
 	out.AddItem(item)
 	return out.ToJSON()
