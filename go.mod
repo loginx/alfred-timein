@@ -1,9 +1,9 @@
 module github.com/loginx/alfred-timein
 
-go 1.25
+go 1.26.2
 
 require (
-	github.com/codingsince1985/geo-golang v1.8.5
+	github.com/codingsince1985/geo-golang v1.9.0
 	github.com/cucumber/godog v0.15.1
 	github.com/ringsaturn/tzf v1.0.4
 	github.com/tkuchiki/go-timezone v0.2.3
