@@ -79,13 +79,7 @@
 				<key>runningsubtext</key>
 				<string>Searching</string>
 				<key>script</key>
-				<string>for exe in geotz timein; do
-  bin="./$exe"
-  if xattr "$bin" 2&gt;/dev/null | grep -q com.apple.quarantine; then
-    xattr -dr com.apple.quarantine "$bin" 2&gt;/dev/null
-  fi
-done
-./geotz "${1}" | ./timein --format=alfred</string>
+				<string>/usr/bin/osascript -l JavaScript timein.js --format=alfred "$1"</string>
 				<key>scriptargtype</key>
 				<integer>1</integer>
 				<key>scriptfile</key>

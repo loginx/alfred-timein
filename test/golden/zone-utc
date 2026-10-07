@@ -1,0 +1,2 @@
+{"items":[{"title":"GMT - Sun, May 11, 6:38 PM","subtitle":"Current time in GMT (GMT)","arg":"GMT - Sun, May 11, 6:38 PM","icon":{"path":"icon.png"},"text":{"copy":"GMT - Sun, May 11, 6:38 PM","largetype":"GMT - Sun, May 11, 6:38 PM"},"action":"GMT - Sun, May 11, 6:38 PM","mods":{"cmd":{"subtitle":"Copy timezone","arg":"GMT"},"alt":{"subtitle":"Copy ISO 8601 time","arg":"2025-05-11T18:38:07Z"}},"variables":{"timezone":"GMT"}}],"cache":{"seconds":60},"skipknowledge":true}
+exit 0

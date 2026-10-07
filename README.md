@@ -2,7 +2,9 @@
 
 **Fast timezone lookup and time conversion for global collaboration**
 
-A reliable Alfred workflow and CLI toolset for instantly finding current times in any city worldwide. Built for remote teams, frequent travelers, and anyone coordinating across time zones.
+An Alfred workflow for instantly finding the current time in any city worldwide. Built for remote teams, frequent travelers, and anyone coordinating across time zones.
+
+It ships no binaries: the whole workflow is one script run by macOS's own JavaScript runtime (JXA), so there is nothing for Gatekeeper to quarantine.
 
 ## Quick Start
 
@@ -13,157 +15,92 @@ A reliable Alfred workflow and CLI toolset for instantly finding current times i
 Type in Alfred:
 
 ```bash
-# In Alfred:
 timein bangkok
 timein new york
-timein tokyo
+timein eiffel tower
 ```
 
 And get:
 
 ```text
 Asia/Bangkok - Mon, May 12, 1:38 AM
-Current time in Bangkok (ICT)
+Current time in Bangkok (GMT+7)
 ```
 
-Or use the CLI directly:
+- ⏎ Copy the full time string
+- ⌘⏎ Copy the timezone name (e.g. `Asia/Bangkok`)
+- ⌥⏎ Copy ISO 8601 time
+- ⌘L Large Type
+
+Or use the script from a terminal:
 
 ```bash
-# Get the current time in a timezone
-bin/timein Asia/Bangkok
-Monday, 12 May 2025, 1:38:07 AM
+./timein.js bangkok
+Asia/Bangkok - Mon, May 12, 1:38 AM
 
-# Get the current time in Alfred JSON format (for piping)
-bin/timein --format=alfred Asia/Bangkok
-{"items":[{"title":"Asia/Bangkok - Mon, May 12, 1:44 AM","subtitle":"Current time in Bangkok (ICT)","arg":"Asia/Bangkok - Mon, May 12, 1:44 AM","variables":{"timezone":"Asia/Bangkok"}}],"cache":{"seconds":60}}
+./timein.js America/New_York     # IANA zone names skip geocoding entirely
+America/New_York - Sun, May 11, 2:38 PM
 
-# Get the timezone for a city or landmark
-bin/geotz "Eiffel Tower"
-Europe/Paris
-
-# Get the timezone for a city in Alfred JSON format
-bin/geotz --format=alfred "Eiffel Tower"
-{"items":[{"title":"Europe/Paris","subtitle":"Eiffel Tower (cached)","arg":"Europe/Paris","variables":{"city":"Eiffel Tower"}}],"cache":{"seconds":604800}}
+./timein.js --format=alfred "Eiffel Tower"
+{"items":[{"title":"Europe/Paris - Sun, May 11, 8:38 PM","subtitle":"Current time in Paris (GMT+2)", ...}]}
 ```
 
-## Core Capabilities
+## What it understands
 
-### Timezone Lookup
-Transform any location into its IANA timezone identifier:
-- **Cities**: `"London" → "Europe/London"`
-- **Landmarks**: `"Eiffel Tower" → "Europe/Paris"`
-- **Airports**: `"JFK" → "America/New_York"`
-- **Postal codes**: `"90210" → "America/Los_Angeles"`
-
-### Current Time Display  
-Get human-readable local time for any timezone:
-- **Formatted output**: `"Monday, 12 May 2025, 1:38:07 AM"`
-- **Multiple formats**: Plain text or Alfred JSON
-- **Locale-aware**: Includes day, date, and time with timezone abbreviation
-
-### Performance Features
-- **Intelligent caching**: 6ms response for cached locations
-- **Offline timezone data**: No API dependencies for timezone resolution
-- **OpenStreetMap geocoding**: No API keys required
-- **Universal binaries**: Native performance on Intel and Apple Silicon
-
-### Integration Options
-- **Alfred workflow**: Type `timein bangkok` for instant results  
-- **CLI tools**: `geotz` and `timein` for scripting and automation
-- **Pipeline support**: `geotz Bangkok | timein` for complex workflows
+- **Cities**: `London` → `Europe/London`
+- **Landmarks**: `Eiffel Tower` → `Europe/Paris`
+- **Airports**: `JFK` → `America/New_York`
+- **Postal codes** (add the country): `90210 USA` → `America/Los_Angeles`, `SW1A 1AA` → `Europe/London`
+- **IANA zones**, any case: `asia/tokyo` → `Asia/Tokyo`
 
 ## Installation
 
-**Recommended:**
-
 1. Download the latest release from [the Releases page](https://github.com/loginx/alfred-timein/releases/latest).
-2. Double-click the `.alfredworkflow` file to install it in Alfred.
-3. In Alfred, type:
+2. Double-click `TimeIn.alfredworkflow` to install it in Alfred.
+3. In Alfred, type `timein berlin`.
 
-    ```bash
-    timein berlin
-    ```
+To build it yourself: clone the repo and run `make alfredworkflow`. There is no compile step.
 
-**Advanced/Development:**
+## How it works
 
-If you want to build and run the workflow or CLI tools yourself:
+1. **IANA zone typed?** Use it as-is.
+2. **Cache, then seed**: your past lookups, then the capitals shipped in `capitals.json`.
+3. **OpenStreetMap** (Nominatim) turns the query into coordinates. No API key, no location bias.
+4. **Apple's geocoder** (`CLGeocoder`) turns those coordinates into a timezone.
+5. **MapKit search** is the fallback when OpenStreetMap is unreachable or a future macOS drops `CLGeocoder`.
 
-1. Clone this repo:
+Results from steps 3–5 are cached. Times and abbreviations come from macOS's own timezone database, so they stay current with OS updates.
 
-    ```bash
-    git clone https://github.com/loginx/alfred-timein.git
-    cd alfred-timein
-    ```
+| Path | Typical time |
+|------|--------------|
+| IANA zone, cache or seed hit | ~70 ms |
+| First lookup of a place | ~0.6 s |
 
-2. Build the Go binaries:
+Design rationale: [docs/architecture](docs/architecture/README.md).
 
-    ```bash
-    make build
-    ```
+## Caching
 
-3. Use the CLI tools directly from `bin/`, or package the workflow:
+- Inside Alfred, lookups are cached in the workflow's data folder (`cache.json`). From a terminal, they go to `~/Library/Caches/com.loginx.timein/cache.json`.
+- Your cache wins over the shipped seed, so a wrong answer can be fixed by editing `cache.json`.
+- Delete `cache.json` to start over. A corrupt file is treated as empty.
+- An entry naming a zone your macOS doesn't know (e.g. `Europe/Kyiv` before tzdata 2022b) is looked up again.
 
-    ```bash
-    make alfredworkflow
-    ```
+## Compatibility
 
-## Caching Details
+The script uses ES2020 syntax (JavaScriptCore from Safari 13.1+) and macOS frameworks that date back to 10.11. That puts the floor at macOS 10.15.4, or an older macOS with Safari 13.1 or later installed. Only macOS 27 is tested.
 
-- The persistent cache is stored in `./geotz_cache.json` (ignored by git).
-- The cache maps city names (lowercased) to their resolved IANA timezone.
-- On first lookup, the workflow queries OpenStreetMap and resolves the timezone; subsequent lookups are instant and do not require network access.
-- You can safely delete the `geotz_cache.json` file to clear the cache.
+`CLGeocoder` is deprecated as of macOS 26. Its replacement, `MKReverseGeocodingRequest`, never calls back from JXA, so the script keeps using `CLGeocoder` while it exists and falls back to MapKit search if it disappears.
 
-## Architecture
+## Testing
 
-alfred-timein follows Clean Architecture principles with clear separation of core logic and external dependencies:
-
-```
-Core Features (What)       Implementation (How)
-├── Timezone Resolution  ←  OpenStreetMap Geocoding + tzf Library  
-├── Time Display        ←  Go time package + Custom Formatting
-├── Intelligent Caching ←  LRU Cache with JSON Persistence
-└── Multi-format Output ←  Plain Text + Alfred JSON Presenters
-```
-
-### Core Components
-- **Domain Layer**: Timezone and Location entities with system rules
-- **Use Cases**: Timezone lookup and time display workflows  
-- **Adapters**: Geocoding, timezone finding, caching, and output formatting
-- **Interfaces**: CLI tools and Alfred workflow integration
-
-### User Scenarios
-The `features/` directory contains executable specifications showing exactly what the system does:
-- `timezone_lookup.feature` - Core timezone resolution capabilities
-- `time_display.feature` - Time formatting and display requirements  
-- `alfred_integration.feature` - Alfred workflow behavior
-- `cli_workflow.feature` - Command-line interface behavior
-- `caching_behavior.feature` - Performance and persistence requirements
-
-## Testing & Quality
-
-This project uses comprehensive testing to ensure reliability:
-
-```bash
-# Run all tests
-make test-all
-
-# Unit tests only  
-make test
-
-# BDD scenarios only
-make test-bdd
-```
-
-**Testing Strategy:**
-- **Unit Tests**: Logic validation for each component
-- **BDD Scenarios**: Living documentation of user requirements
-- **Integration Tests**: End-to-end workflow validation
-- **Performance Tests**: Cache behavior and response time validation
+Golden tests at the CLI: each row in `test/run.sh` runs `timein.js` and diffs stdout, stderr and exit code against `test/golden/<name>`. Commands are in [CONTRIBUTING.md](CONTRIBUTING.md#testing).
 
 ## Known Limitations
 
-- Requires an internet connection for initial geocoding
+- The first lookup of a place that isn't cached or seeded needs an internet connection.
+- Places Apple has no timezone for, such as summits and the poles, return an error rather than a guess.
+- Abbreviations are the ones macOS uses: `EDT`, but `GMT+7` rather than `ICT`.
+- Dates and times are formatted in English.
 
 ## License
 

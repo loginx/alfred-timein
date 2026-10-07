@@ -1,0 +1,2 @@
+Error: City or landmark argument required.
+exit 1

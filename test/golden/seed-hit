@@ -1,0 +1,2 @@
+{"items":[{"title":"Europe/Paris - Sun, May 11, 8:38 PM","subtitle":"Current time in Paris (GMT+2)","arg":"Europe/Paris - Sun, May 11, 8:38 PM","icon":{"path":"icon.png"},"text":{"copy":"Europe/Paris - Sun, May 11, 8:38 PM","largetype":"Europe/Paris - Sun, May 11, 8:38 PM"},"action":"Europe/Paris - Sun, May 11, 8:38 PM","mods":{"cmd":{"subtitle":"Copy timezone","arg":"Europe/Paris"},"alt":{"subtitle":"Copy ISO 8601 time","arg":"2025-05-11T20:38:07+02:00"}},"variables":{"timezone":"Europe/Paris"}}],"cache":{"seconds":60},"skipknowledge":true}
+exit 0

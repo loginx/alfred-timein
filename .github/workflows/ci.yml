@@ -12,184 +12,76 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test:
-    name: Test
+  ci:
+    name: Test & Release
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Go
-        uses: actions/setup-go@v5
         with:
-          go-version-file: 'go.mod'
-      - name: Run unit tests
-        run: go test ./...
-      - name: Run BDD tests
-        run: go test -tags=bdd -run TestBDD -timeout 60s
-      - name: Run tests with coverage
-        run: go test -coverprofile=coverage.out -short ./internal/...
-      - name: Upload coverage
-        uses: codecov/codecov-action@v4
-        with:
-          file: ./coverage.out
-          fail_ci_if_error: false
+          fetch-depth: 0 # release versioning and changelog read history and tags
 
-  build:
-    name: Build Binaries
-    runs-on: macos-latest
-    needs: test
-    outputs:
-      version: ${{ steps.version.outputs.version }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version-file: 'go.mod'
-      
-      - name: Determine version
-        id: version
+      - name: Golden tests (offline + live OSM/Apple lookups)
+        run: make smoke
+
+      # Version tags publish stable releases, dev pushes publish betas; everything else stops after the tests.
+      - name: Plan release
+        id: release
+        if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/dev'
         run: |
-          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
-            VERSION=${GITHUB_REF#refs/tags/v}
-          elif [[ "${{ github.ref }}" == "refs/heads/dev" ]]; then
-            COUNT=$(git rev-list --count HEAD)
-            SHA=$(git rev-parse --short HEAD)
-            VERSION="v0.0.0-beta.${COUNT}+${SHA}"
+          if [[ $GITHUB_REF == refs/tags/v* ]]; then
+            tag=$GITHUB_REF_NAME
+            version=${tag#v}
+            range=--latest
+            prerelease=false
+            file=TimeIn.alfredworkflow
+            intro="A reliable Alfred workflow for timezone lookups and time conversion."
           else
-            VERSION="dev-${GITHUB_SHA:0:8}"
+            tag=v0.0.0-beta.$(git rev-list --count HEAD)+$(git rev-parse --short HEAD)
+            version=$tag
+            range=--unreleased
+            prerelease=true
+            file=TimeIn-$tag.alfredworkflow
+            intro="Beta from dev ($GITHUB_SHA), not a stable release: use at your own risk."
           fi
-          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
-          echo "Version: ${VERSION}"
-      
-      - name: Build binaries (matrix would be better but lipo needs macOS)
-        run: |
-          # amd64
-          GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -trimpath -o geotz_amd64 ./cmd/geotz
-          GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -trimpath -o timein_amd64 ./cmd/timein
-          # arm64  
-          GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -trimpath -o geotz_arm64 ./cmd/geotz
-          GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -trimpath -o timein_arm64 ./cmd/timein
-          # universal
-          lipo -create -output geotz geotz_amd64 geotz_arm64
-          lipo -create -output timein timein_amd64 timein_arm64
-          rm geotz_amd64 geotz_arm64 timein_amd64 timein_arm64
-          chmod +x geotz timein
-      
-      - name: Test binaries
-        run: |
-          ./geotz Tokyo
-          echo "Asia/Tokyo" | ./timein
-      
-      - name: Upload binaries
-        uses: actions/upload-artifact@v4
-        with:
-          name: binaries-${{ steps.version.outputs.version }}
-          path: |
-            geotz
-            timein
-          retention-days: 30
+          printf '%s\n' "tag=$tag" "version=$version" "range=$range" "prerelease=$prerelease" "file=$file" "intro=$intro" | tee -a "$GITHUB_OUTPUT"
 
-  release:
-    name: Create Release
-    runs-on: macos-latest
-    needs: [test, build]
-    if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/dev'
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      
-      - name: Download binaries
-        uses: actions/download-artifact@v4
-        with:
-          name: binaries-${{ needs.build.outputs.version }}
-      
-      - name: Set up Go (for preseed tool)
-        uses: actions/setup-go@v5
-        with:
-          go-version-file: 'go.mod'
-      
-      - name: Generate changelog (for stable releases)
-        if: startsWith(github.ref, 'refs/tags/v')
+      - name: Generate changelog
         id: changelog
+        if: steps.release.outcome == 'success'
         uses: orhun/git-cliff-action@v4
         with:
           config: cliff.toml
-          args: --latest --strip header
+          args: ${{ steps.release.outputs.range }} --strip header
         env:
-          OUTPUT: CHANGES.md
           GITHUB_REPO: ${{ github.repository }}
 
-      - name: Read changelog
-        if: startsWith(github.ref, 'refs/tags/v')
-        id: read_changelog
+      - name: Package workflow
+        if: steps.release.outcome == 'success'
         run: |
-          echo "changelog<<EOF" >> "$GITHUB_OUTPUT"
-          cat CHANGES.md >> "$GITHUB_OUTPUT"
-          echo "EOF" >> "$GITHUB_OUTPUT"
-      
-      - name: Update plist version
-        run: |
-          plutil -replace version -string "${{ needs.build.outputs.version }}" info.plist
-      
-      - name: Create Alfred workflow
-        run: |
-          make alfredworkflow
-          if [[ "${{ github.ref }}" == "refs/heads/dev" ]]; then
-            mv TimeIn.alfredworkflow TimeIn-${{ needs.build.outputs.version }}.alfredworkflow
-          fi
-      
-      - name: Create stable release
-        if: startsWith(github.ref, 'refs/tags/v')
+          plutil -replace version -string "${{ steps.release.outputs.version }}" info.plist
+          make alfredworkflow OUT="${{ steps.release.outputs.file }}"
+
+      - name: Publish release
+        if: steps.release.outcome == 'success'
         uses: softprops/action-gh-release@v2
         with:
-          name: "alfred-timein v${{ needs.build.outputs.version }}"
+          tag_name: ${{ steps.release.outputs.tag }}
+          name: alfred-timein ${{ steps.release.outputs.tag }}
+          prerelease: ${{ steps.release.outputs.prerelease }}
+          files: ${{ steps.release.outputs.file }}
           body: |
-            A reliable Alfred workflow for timezone lookups and time conversion.
-            
+            ${{ steps.release.outputs.intro }}
+
             ## What's Changed
 
-            ${{ steps.read_changelog.outputs.changelog }}
-            
+            ${{ steps.changelog.outputs.content }}
+
             ## Installation
-            
-            Download TimeIn.alfredworkflow and open with Alfred.
-            
-            ## CLI Tools
-            
-            Download individual command-line tools:
-            - `geotz` - Timezone lookup by coordinates
-            - `timein` - Time conversion and display
-          files: |
-            TimeIn.alfredworkflow
-            geotz
-            timein
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
-      - name: Create beta release  
-        if: github.ref == 'refs/heads/dev'
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ needs.build.outputs.version }}
-          name: "alfred-timein ${{ needs.build.outputs.version }}"
-          body: |
-            Beta release from the dev branch for testing new features.
-            
-            WARNING: This is not a stable release. Use at your own risk.
-            
-            ## Installation
-            
-            Download TimeIn-${{ needs.build.outputs.version }}.alfredworkflow and open with Alfred.
-            
-            Build: ${{ github.sha }}
-          files: |
-            TimeIn-${{ needs.build.outputs.version }}.alfredworkflow
-            geotz
-            timein
-          prerelease: true
-          draft: false
+
+            Download `${{ steps.release.outputs.file }}` and open it with Alfred.
+
+            ## Command line
+
+            The workflow's `timein.js` doubles as a CLI: `osascript -l JavaScript timein.js tokyo`
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
