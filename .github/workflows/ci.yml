@@ -12,106 +12,76 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test:
-    name: Test
+  ci:
+    name: Test & Release
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # release versioning and changelog read history and tags
+
       - name: Golden tests (offline + live OSM/Apple lookups)
         run: make smoke
 
-  release:
-    name: Create Release
-    runs-on: macos-latest
-    needs: test
-    if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/dev'
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Determine version
-        id: version
+      # Version tags publish stable releases, dev pushes publish betas; everything else stops after the tests.
+      - name: Plan release
+        id: release
+        if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/dev'
         run: |
-          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
-            VERSION=${GITHUB_REF#refs/tags/v}
+          if [[ $GITHUB_REF == refs/tags/v* ]]; then
+            tag=$GITHUB_REF_NAME
+            version=${tag#v}
+            range=--latest
+            prerelease=false
+            file=TimeIn.alfredworkflow
+            intro="A reliable Alfred workflow for timezone lookups and time conversion."
           else
-            COUNT=$(git rev-list --count HEAD)
-            SHA=$(git rev-parse --short HEAD)
-            VERSION="v0.0.0-beta.${COUNT}+${SHA}"
+            tag=v0.0.0-beta.$(git rev-list --count HEAD)+$(git rev-parse --short HEAD)
+            version=$tag
+            range=--unreleased
+            prerelease=true
+            file=TimeIn-$tag.alfredworkflow
+            intro="Beta from dev ($GITHUB_SHA), not a stable release: use at your own risk."
           fi
-          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
-          echo "Version: ${VERSION}"
+          printf '%s\n' "tag=$tag" "version=$version" "range=$range" "prerelease=$prerelease" "file=$file" "intro=$intro" | tee -a "$GITHUB_OUTPUT"
 
-      - name: Generate changelog (for stable releases)
-        if: startsWith(github.ref, 'refs/tags/v')
+      - name: Generate changelog
+        id: changelog
+        if: steps.release.outcome == 'success'
         uses: orhun/git-cliff-action@v4
         with:
           config: cliff.toml
-          args: --latest --strip header
+          args: ${{ steps.release.outputs.range }} --strip header
         env:
-          OUTPUT: CHANGES.md
           GITHUB_REPO: ${{ github.repository }}
 
-      - name: Read changelog
-        if: startsWith(github.ref, 'refs/tags/v')
-        id: read_changelog
+      - name: Package workflow
+        if: steps.release.outcome == 'success'
         run: |
-          echo "changelog<<EOF" >> "$GITHUB_OUTPUT"
-          cat CHANGES.md >> "$GITHUB_OUTPUT"
-          echo "EOF" >> "$GITHUB_OUTPUT"
+          plutil -replace version -string "${{ steps.release.outputs.version }}" info.plist
+          make alfredworkflow OUT="${{ steps.release.outputs.file }}"
 
-      - name: Update plist version
-        run: plutil -replace version -string "${{ steps.version.outputs.version }}" info.plist
-
-      - name: Create Alfred workflow
-        run: |
-          make alfredworkflow
-          if [[ "${{ github.ref }}" == "refs/heads/dev" ]]; then
-            mv TimeIn.alfredworkflow TimeIn-${{ steps.version.outputs.version }}.alfredworkflow
-          fi
-
-      - name: Create stable release
-        if: startsWith(github.ref, 'refs/tags/v')
+      - name: Publish release
+        if: steps.release.outcome == 'success'
         uses: softprops/action-gh-release@v2
         with:
-          name: "alfred-timein v${{ steps.version.outputs.version }}"
+          tag_name: ${{ steps.release.outputs.tag }}
+          name: alfred-timein ${{ steps.release.outputs.tag }}
+          prerelease: ${{ steps.release.outputs.prerelease }}
+          files: ${{ steps.release.outputs.file }}
           body: |
-            A reliable Alfred workflow for timezone lookups and time conversion.
+            ${{ steps.release.outputs.intro }}
 
             ## What's Changed
 
-            ${{ steps.read_changelog.outputs.changelog }}
+            ${{ steps.changelog.outputs.content }}
 
             ## Installation
 
-            Download TimeIn.alfredworkflow and open with Alfred.
+            Download `${{ steps.release.outputs.file }}` and open it with Alfred.
 
             ## Command line
 
             The workflow's `timein.js` doubles as a CLI: `osascript -l JavaScript timein.js tokyo`
-          files: TimeIn.alfredworkflow
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Create beta release
-        if: github.ref == 'refs/heads/dev'
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ steps.version.outputs.version }}
-          name: "alfred-timein ${{ steps.version.outputs.version }}"
-          body: |
-            Beta release from the dev branch for testing new features.
-
-            WARNING: This is not a stable release. Use at your own risk.
-
-            ## Installation
-
-            Download TimeIn-${{ steps.version.outputs.version }}.alfredworkflow and open with Alfred.
-
-            Build: ${{ github.sha }}
-          files: TimeIn-${{ steps.version.outputs.version }}.alfredworkflow
-          prerelease: true
-          draft: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

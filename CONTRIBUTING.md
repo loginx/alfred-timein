@@ -66,4 +66,4 @@ Everything lives in `timein.js`; run it directly with `./timein.js <place>`.
 
 - **Beta releases**: Automatic on `dev` branch pushes
 - **Stable releases**: Manual tag creation on `main` branch
-- **Changelogs**: Generated automatically from commit messages
+- **Changelogs**: Generated from commit messages; betas list everything since the last stable release
