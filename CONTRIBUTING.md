@@ -38,7 +38,7 @@ test: add unit tests for cache functionality
 
 1. **Create feature branch** from `dev`
 2. **Make changes** with conventional commit messages
-3. **Test locally** with `make test-all`
+3. **Test locally** with `make smoke`
 4. **Submit PR** to `dev` branch
 5. **Automated testing** runs on all PRs
 6. **Beta releases** are created automatically from `dev`
@@ -47,21 +47,20 @@ test: add unit tests for cache functionality
 ## Testing
 
 ```bash
-# Run all tests
-make test-all
-
-# Run unit tests only
+# Offline golden tests (pinned clock, no network)
 make test
 
-# Run BDD tests only
-make test-bdd
+# Golden tests plus live OpenStreetMap/Apple lookups
+make smoke
 
-# Build binaries
-make build
+# Rewrite goldens after an intended output change
+UPDATE=1 test/run.sh --live
 
-# Build Alfred workflow
+# Package the Alfred workflow
 make alfredworkflow
 ```
+
+Everything lives in `timein.js`; run it directly with `./timein.js <place>`.
 
 ## Release Process
 

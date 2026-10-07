@@ -1,0 +1,2 @@
+Error: Could not geocode: NotARealCity123
+exit 1

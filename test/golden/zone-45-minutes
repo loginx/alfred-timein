@@ -1,0 +1,2 @@
+{"items":[{"title":"Asia/Kathmandu - Mon, May 12, 12:23 AM","subtitle":"Current time in Kathmandu (GMT+5:45)","arg":"Asia/Kathmandu - Mon, May 12, 12:23 AM","icon":{"path":"icon.png"},"text":{"copy":"Asia/Kathmandu - Mon, May 12, 12:23 AM","largetype":"Asia/Kathmandu - Mon, May 12, 12:23 AM"},"action":"Asia/Kathmandu - Mon, May 12, 12:23 AM","mods":{"cmd":{"subtitle":"Copy timezone","arg":"Asia/Kathmandu"},"alt":{"subtitle":"Copy ISO 8601 time","arg":"2025-05-12T00:23:07+05:45"}},"variables":{"timezone":"Asia/Kathmandu"}}],"cache":{"seconds":60},"skipknowledge":true}
+exit 0

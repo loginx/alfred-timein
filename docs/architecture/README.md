@@ -1,94 +1,45 @@
-# Architecture Overview
+# Architecture
 
-alfred-timein is designed around **timezone resolution and time display** as core capabilities. The architecture prioritizes reliability, performance, and maintainability for global time coordination workflows.
+alfred-timein answers one question — *what time is it there?* — for a city, landmark, airport, postal code or IANA zone, in Alfred or a terminal.
 
-## User Context
+## Shape
 
-**Problem**: Remote workers and global travelers need instant, reliable timezone information and current time lookup without complex setup or API dependencies.
+One JXA script, `timein.js`, run by `/usr/bin/osascript`. No build step, no dependencies, no binary ([ADR-002](ADR-002-native-jxa-runtime.md)).
 
-**Solution**: Fast, offline-capable timezone resolution with intelligent caching and multiple interface options (Alfred + CLI).
-
-## Core Capabilities
-
-### 1. Timezone Resolution
-**Purpose**: Transform human-readable locations into IANA timezone identifiers
-
-**Flow**: Location Input → Geocoding → Coordinate-based Timezone Lookup → IANA String  
-**Examples**: `"Tokyo" → "Asia/Tokyo"`, `"Eiffel Tower" → "Europe/Paris"`
-
-### 2. Current Time Display  
-**Purpose**: Show human-readable local time for any timezone
-
-**Flow**: Timezone String → Current Time Calculation → Formatted Output  
-**Examples**: `"Asia/Tokyo" → "Monday, 12 May 2025, 2:38:07 PM"`
-
-### 3. Intelligent Caching
-**Purpose**: Eliminate repeated network requests for timezone resolution
-
-**Flow**: Cache Check → Network Lookup (if miss) → Cache Store → Response  
-**Performance**: 6ms cache hits vs 400ms+ network lookups
-
-## Architectural Patterns
-
-### Clean Architecture
 ```
-Domain Models (System Rules)
-    ↑
-Use Cases (Application Logic)  
-    ↑
-Interface Adapters (Data Conversion)
-    ↑  
-Frameworks & Drivers (External Tools)
+query ─▶ IANA zone? ─▶ cache.json ─▶ capitals.json ─▶ LOOKUPS ─▶ clock ─▶ FORMATS
+          (as typed)    (user)        (shipped seed)    osm        NSDateFormatter   plain | alfred
+                                                        mapkit
 ```
 
-### Dependency Inversion
-- Core logic depends on interfaces, not implementations
-- External services (geocoding, timezone data) are abstracted
-- Easy to swap implementations without changing core logic
+The script reads top-down in the same order:
 
-### Command Query Separation
-- **Commands**: Cache operations, no return values
-- **Queries**: Timezone lookup and time display, read-only
+| Landmark | Role |
+|----------|------|
+| `LOOKUPS` | Ordered network lookups. Each returns a zone name, `null` (couldn't answer → try the next) or `NOT_FOUND` (answered "nowhere" → stop). |
+| `FORMATS` | Output table: `ok` and `error` per format. Unknown format fails loudly. |
+| `resolve` | Zone as typed → user cache → seed → lookups; caches network answers. |
+| `osm` | Nominatim geocode, then `CLGeocoder` reverse geocode of the coordinates. |
+| `mapkit` | `MKLocalSearch` text query; fallback only. |
+| `clock` | Title, abbreviation and ISO 8601 time from `NSDateFormatter` (`en_US_POSIX`, stable across releases) and `NSISO8601DateFormatter`. |
+| `settle` | Spins the run loop until a completion handler fires — JXA has no `await`. |
 
-## Technology Decisions
+## Decisions
 
-### Go Language
-**Rationale**: Fast compilation, single binary output, excellent concurrency, strong standard library for time handling
+- **Two-step lookup (OSM, then Apple).** OpenStreetMap geocodes landmarks without biasing results toward the user's location; Apple's reverse geocoder turns coordinates into a zone without shipping polygon data.
+- **MapKit only when OSM can't answer.** MapKit's text search finds *something* for almost any input and leans toward the user's region ("big ben" → a street in South Carolina). Asking it after OSM said "no such place" would turn typos into confident wrong answers, so `NOT_FOUND` ends the chain.
+- **Prototype-free maps.** `FORMATS`, `LOOKUPS` and parsed JSON have no prototype, so input like `constructor` can't match `Object.prototype` members.
+- **Validate zones against this macOS.** Cached and seeded names are checked with `NSTimeZone`; unknown names are misses, which keeps older macOS releases working when tzdata renames a zone.
+- **Seed is data, not a build step.** `capitals.json` is a plain `{city: zone}` map, edited by hand.
+- **Lazy framework imports.** CoreLocation and MapKit load only on the network path, keeping cache hits near `osascript`'s own startup time.
 
-### tzf Library (15MB)
-**Rationale**: Offline timezone resolution prioritized over binary size - reliability beats optimization for desktop workflows
+## JXA pitfalls this code works around
 
-### OpenStreetMap Geocoding  
-**Rationale**: No API keys required, good coverage for cities and landmarks, free usage
+- `$.ClassName` resolution depends on framework import order (`$.NSURLSession` is undefined under Foundation alone) → classes are resolved with `NSClassFromString`.
+- 64-bit ObjC integers (`count`, `statusCode`) arrive as strings, and `"0"` is truthy → avoided, or coerced with `Number()`.
+- Nested C structs (e.g. `MKCoordinateRegion`) crash the bridge → no region-bounded MapKit searches.
+- `console.log` writes to stderr; script output is the `run` handler's return value.
 
-### LRU Cache with JSON Persistence
-**Rationale**: Simple, fast, survives application restarts, easy to inspect and debug
+## Testing
 
-### BDD Testing with Godog
-**Rationale**: Executable specifications serve as living documentation of business requirements
-
-## Performance Characteristics
-
-- **Cache Hit**: ~6ms response time
-- **Cache Miss**: ~400ms (network dependent)  
-- **Binary Size**: ~15MB (acceptable for desktop tools)
-- **Memory Usage**: Minimal, cache bounded by LRU eviction
-
-## Integration Points
-
-### Alfred Workflow
-- JSON Script Filter format for native Alfred integration
-- Instant results with subtitle information
-- Action support for copying results
-
-### CLI Tools  
-- `geotz`: Location → Timezone resolution
-- `timein`: Timezone → Current time display
-- Pipeline support: `geotz Bangkok | timein`
-
-## Quality Attributes
-
-1. **Reliability**: Offline timezone data, persistent caching, comprehensive testing
-2. **Performance**: Intelligent caching, optimized binary size, fast startup  
-3. **Usability**: Natural language input, multiple output formats, clear error messages
-4. **Maintainability**: Clean Architecture, BDD scenarios, conventional commits
+Black-box golden tests at the CLI seam (`test/run.sh`): a pinned clock (`TIMEIN_NOW`) and no network (`TIMEIN_LOOKUPS=`) make the default suite deterministic and offline. `--live` adds real OSM/Apple lookups, including the degraded paths (not found, no zone, MapKit-only).

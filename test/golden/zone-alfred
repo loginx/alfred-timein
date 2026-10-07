@@ -1,0 +1,2 @@
+{"items":[{"title":"Asia/Bangkok - Mon, May 12, 1:38 AM","subtitle":"Current time in Bangkok (GMT+7)","arg":"Asia/Bangkok - Mon, May 12, 1:38 AM","icon":{"path":"icon.png"},"text":{"copy":"Asia/Bangkok - Mon, May 12, 1:38 AM","largetype":"Asia/Bangkok - Mon, May 12, 1:38 AM"},"action":"Asia/Bangkok - Mon, May 12, 1:38 AM","mods":{"cmd":{"subtitle":"Copy timezone","arg":"Asia/Bangkok"},"alt":{"subtitle":"Copy ISO 8601 time","arg":"2025-05-12T01:38:07+07:00"}},"variables":{"timezone":"Asia/Bangkok"}}],"cache":{"seconds":60},"skipknowledge":true}
+exit 0

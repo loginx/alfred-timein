@@ -1,37 +1,11 @@
-# Go build artifacts
-*.exe
-*.exe~
-*.dll
-*.so
-*.dylib
-*.test
-*.out
-.preseed
-
 # Editor/OS
 .DS_Store
-.cache/
-
-# Ignore workflow and release artifacts
-*.alfredworkflow
-*.zip
-
-# Ignore generated cache files (built at release time)
-workflow/geotz_cache.json
-
-# Ignore test output
-coverage/
-# BDD features should be tracked
-!features/
-
-# Go modules
-
-# IDE/editor
 .idea/
 .vscode/
 .claude/
 
+# Release artifacts
+*.alfredworkflow
+
 # Claude project memory (local only)
 CLAUDE.local.md
-
-bin/

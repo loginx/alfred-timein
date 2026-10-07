@@ -1,7 +1,7 @@
 # ADR-001: Timezone Library Selection
 
 ## Status
-Accepted
+Superseded by [ADR-002](ADR-002-native-jxa-runtime.md): timezones now come from Apple's geocoder, not an embedded library.
 
 ## Context
 The application needs to convert geographic coordinates to IANA timezone identifiers. This is a core business requirement for timezone resolution functionality.

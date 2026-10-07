@@ -1,0 +1,2 @@
+{"items":[{"title":"Error","subtitle":"Could not geocode: NotARealCity123","valid":false,"icon":{"path":"/System/Library/CoreServices/CoreTypes.bundle/Contents/Resources/AlertStopIcon.icns"}}]}
+exit 0
