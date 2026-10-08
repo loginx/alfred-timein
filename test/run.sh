@@ -14,6 +14,7 @@ fx=test/fixtures
 refused=http://127.0.0.1:1/search?q= # nothing listens on port 1
 rows=0 failed=0
 
+die() { echo "setup failed: $*" >&2; exit 1; } # a broken fixture would pass as "Could not geocode"
 check() { # <name> <command...>
   local name=$1 got
   shift
@@ -34,7 +35,7 @@ alfred() {
 # <status> <body> <command...>: runs the command against a one-shot local Nominatim stand-in.
 # Status "silent" accepts the connection and never answers.
 nominatim() {
-  local port=$((20000 + RANDOM % 20000)) status=$1 body=$2
+  local port=$((20000 + RANDOM % 20000)) status=$1 body=$2 tries=100
   shift 2
   if [[ $status == silent ]]; then
     sleep 10
@@ -42,7 +43,11 @@ nominatim() {
     printf 'HTTP/1.1 %s\r\nContent-Type: application/json\r\nContent-Length: %d\r\nConnection: close\r\n\r\n%s' \
       "$status" "$(($(printf %s "$body" | wc -c)))" "$body"
   fi | nc -l 127.0.0.1 "$port" >/dev/null 2>&1 &
-  for _ in {1..100}; do lsof -nP -iTCP:"$port" -sTCP:LISTEN >/dev/null 2>&1 && break; sleep 0.05; done
+  local pid=$! # must be our nc listening: a failed bind or a port collision would look like "refused"
+  until lsof -nP -a -p "$pid" -iTCP:"$port" -sTCP:LISTEN >/dev/null 2>&1; do
+    ((--tries)) || die "nominatim stand-in never listened on :$port"
+    sleep 0.05
+  done
   TIMEIN_NOMINATIM="http://127.0.0.1:$port/search?q=" "$@"
 }
 
@@ -75,9 +80,10 @@ offline() {
   # and the packaged workflow — quarantined as if downloaded — run through its Script Filter.
   check shebang-elsewhere   from "$tmp" "$PWD/timein.js" bangkok
   HOME=$PWD/$fx/home check default-cache-dir env -u alfred_workflow_data "$PWD/timein.js" machu picchu
-  make -s alfredworkflow OUT="$tmp/TimeIn.alfredworkflow" >/dev/null
-  unzip -q "$tmp/TimeIn.alfredworkflow" -d "$tmp/pkg"
-  xattr -w com.apple.quarantine "0083;$(printf %x "$(date +%s)");Safari;" "$tmp"/pkg/*
+  make -s alfredworkflow OUT="$tmp/TimeIn.alfredworkflow" >/dev/null &&
+    unzip -q "$tmp/TimeIn.alfredworkflow" -d "$tmp/pkg" &&
+    xattr -w com.apple.quarantine "0083;$(printf %x "$(date +%s)");Safari;" "$tmp"/pkg/* ||
+    die "packaging the quarantined workflow"
   check package-contents    unzip -Z1 "$tmp/TimeIn.alfredworkflow"
   check alfred-seed-hit     alfred tokyo
   check alfred-empty        alfred ""
