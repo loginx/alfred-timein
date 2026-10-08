@@ -1,0 +1,2 @@
+{"items":[{"title":"Asia/Tokyo - Mon, May 12, 3:38 AM","subtitle":"Current time in Tokyo (GMT+9)","arg":"Asia/Tokyo - Mon, May 12, 3:38 AM","icon":{"path":"icon.png"},"text":{"copy":"Asia/Tokyo - Mon, May 12, 3:38 AM","largetype":"Asia/Tokyo - Mon, May 12, 3:38 AM"},"action":"Asia/Tokyo - Mon, May 12, 3:38 AM","mods":{"cmd":{"subtitle":"Copy timezone","arg":"Asia/Tokyo"},"alt":{"subtitle":"Copy ISO 8601 time","arg":"2025-05-12T03:38:07+09:00"}},"variables":{"timezone":"Asia/Tokyo"}}],"cache":{"seconds":60},"skipknowledge":true}
+exit 0

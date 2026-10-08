@@ -38,7 +38,7 @@ test: add unit tests for cache functionality
 
 1. **Create feature branch** from `dev`
 2. **Make changes** with conventional commit messages
-3. **Test locally** with `make smoke`
+3. **Test locally** with `make lint test live`
 4. **Submit PR** to `dev` branch
 5. **Automated testing** runs on all PRs
 6. **Beta releases** are created automatically from `dev`
@@ -47,18 +47,23 @@ test: add unit tests for cache functionality
 ## Testing
 
 ```bash
-# Offline golden tests (pinned clock, no network)
+# ES2020 syntax ceiling (older macOS JavaScriptCore); fetches acorn via npx
+make lint
+
+# Offline: unit tests (test/unit.js) + golden tests (test/run.sh), no network
 make test
 
-# Golden tests plus live OpenStreetMap/Apple lookups
-make smoke
+# Golden tests against real OpenStreetMap/Apple services
+make live
 
 # Rewrite goldens after an intended output change
-UPDATE=1 test/run.sh --live
+UPDATE=1 make test live
 
 # Package the Alfred workflow
 make alfredworkflow
 ```
+
+CI runs `make test` on the oldest supported GitHub-hosted macOS too, before testing and releasing on the latest.
 
 Everything lives in `timein.js`; run it directly with `./timein.js <place>`.
 

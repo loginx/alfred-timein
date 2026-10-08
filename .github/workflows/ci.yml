@@ -12,16 +12,30 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  compat:
+    name: Offline tests (oldest macOS)
+    runs-on: macos-15 # oldest GitHub-hosted macOS still supported; bump when it's retired
+    steps:
+      - uses: actions/checkout@v4
+      - run: make test
+
   ci:
     name: Test & Release
+    needs: compat
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0 # release versioning and changelog read history and tags
 
-      - name: Golden tests (offline + live OSM/Apple lookups)
-        run: make smoke
+      - name: Syntax ceiling (ES2020)
+        run: make lint
+
+      - name: Offline tests (unit + golden)
+        run: make test
+
+      - name: Live lookups (OpenStreetMap, Apple)
+        run: make live
 
       # Version tags publish stable releases, dev pushes publish betas; everything else stops after the tests.
       - name: Plan release

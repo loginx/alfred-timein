@@ -1,0 +1,2 @@
+{"items":[{"title":"Error","subtitle":"City or landmark argument required.","valid":false,"icon":{"path":"/System/Library/CoreServices/CoreTypes.bundle/Contents/Resources/AlertStopIcon.icns"}}]}
+exit 0

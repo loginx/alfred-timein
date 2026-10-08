@@ -93,7 +93,7 @@ The script uses ES2020 syntax (JavaScriptCore from Safari 13.1+) and macOS frame
 
 ## Testing
 
-Golden tests at the CLI: each row in `test/run.sh` runs `timein.js` and diffs stdout, stderr and exit code against `test/golden/<name>`. Commands are in [CONTRIBUTING.md](CONTRIBUTING.md#testing).
+Unit tests (`test/unit.js`) pin down the lookup chain; golden tests (`test/run.sh`) run the script as a shell or Alfred would and diff stdout, stderr and exit code against `test/golden/<name>`. Commands are in [CONTRIBUTING.md](CONTRIBUTING.md#testing).
 
 ## Known Limitations
 
