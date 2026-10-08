@@ -42,4 +42,7 @@ The script reads top-down in the same order:
 
 ## Testing
 
-Black-box golden tests at the CLI seam (`test/run.sh`): a pinned clock (`TIMEIN_NOW`) and no network (`TIMEIN_LOOKUPS=`) make the default suite deterministic and offline. `--live` adds real OSM/Apple lookups, including the degraded paths (not found, no zone, MapKit-only).
+- **Unit** (`test/unit.js`): loads `timein.js` with its network edges stubbed and checks the lookup chain — `null` moves on, `NOT_FOUND` stops, unknown zones are skipped, answers are cached — and how Nominatim replies map onto it.
+- **Golden, offline** (`test/run.sh`): runs the script as a shell, the shebang and Alfred (the quarantined package through its Script Filter) would. A pinned clock (`TIMEIN_NOW`), no lookups (`TIMEIN_LOOKUPS=`) and one-shot local Nominatim stand-ins (`TIMEIN_NOMINATIM`) make OSM failures — refused, HTTP error, non-JSON, timeout, no results — deterministic.
+- **Golden, live** (`test/run.sh live`): real OSM and Apple lookups, including MapKit taking over when OSM is unreachable.
+- **CI**: `make lint` holds the ES2020 ceiling; the offline suite also runs on the oldest supported GitHub-hosted macOS.

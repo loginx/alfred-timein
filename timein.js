@@ -5,7 +5,8 @@
 //
 //   timein.js [--format=plain|alfred] <city, landmark or IANA zone>
 //
-// Test seams: TIMEIN_NOW pins the clock (ISO 8601); TIMEIN_LOOKUPS picks network lookups ("osm,mapkit"; empty = offline).
+// Test seams: TIMEIN_NOW pins the clock (ISO 8601); TIMEIN_LOOKUPS picks network lookups ("osm,mapkit"; empty = offline);
+// TIMEIN_NOMINATIM points OSM lookups at a stand-in server.
 
 ObjC.import('stdlib')
 
@@ -85,7 +86,7 @@ function resolve(query, seedPath, cachePath) {
 }
 
 function osm(query) {
-  const hits = fetchJSON(NOMINATIM + encodeURIComponent(query))
+  const hits = fetchJSON((env('TIMEIN_NOMINATIM') ?? NOMINATIM) + encodeURIComponent(query))
   if (!Array.isArray(hits)) return null
   if (!hits.length) return NOT_FOUND
   const [hit] = hits
